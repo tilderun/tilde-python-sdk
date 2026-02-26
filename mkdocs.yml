@@ -1,0 +1,27 @@
+site_name: Cerebral Python SDK
+site_description: Python SDK for the Cerebral data versioning API
+repo_url: https://github.com/cerebral-storage/cerebral-python-sdk
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+
+nav:
+  - Home: index.md
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [src]
+          options:
+            show_source: true
+            show_root_heading: true
+
+markdown_extensions:
+  - pymdownx.highlight
+  - pymdownx.superfences
