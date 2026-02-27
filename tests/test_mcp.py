@@ -742,4 +742,4 @@ class TestMcpUserAgent:
         """With client info, both cerebral-mcp and client identity are included."""
         ctx = _make_ctx(client_name="claude-desktop", client_version="1.2.3")
         ua = mcp_server._build_mcp_user_agent(ctx)
-        assert ua == "cerebral-mcp/0.1.0 claude-desktop/1.2.3"
+        assert ua == "cerebral-mcp/0.3.0 claude-desktop/1.2.3"

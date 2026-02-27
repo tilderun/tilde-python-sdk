@@ -2748,6 +2748,9 @@ components:
         agents_require_approval:
           type: boolean
           description: When enabled, agent commits return 202 and require human approval
+        created_by_type:
+          type: string
+          enum: [user, role, agent]
         created_by:
           type: string
           format: uuid
@@ -3004,6 +3007,9 @@ components:
           type: string
         description:
           type: string
+        created_by_type:
+          type: string
+          enum: [user, role, agent]
         created_by:
           type: string
           format: uuid
@@ -3065,6 +3071,9 @@ components:
           type: string
         description:
           type: string
+        created_by_type:
+          type: string
+          enum: [user, role, agent]
         created_by:
           type: string
           format: uuid
@@ -3107,6 +3116,9 @@ components:
           type: string
         is_builtin:
           type: boolean
+        created_by_type:
+          type: string
+          enum: [user, role, agent]
         created_by:
           type: string
           format: uuid
@@ -3159,6 +3171,9 @@ components:
           format: uuid
         principal_name:
           type: string
+        attached_by_type:
+          type: string
+          enum: [user, role, agent]
         attached_by:
           type: string
           format: uuid
@@ -3300,6 +3315,9 @@ components:
           type: string
         error:
           type: string
+        created_by_type:
+          type: string
+          enum: [user, role, agent]
         created_by:
           type: string
           format: uuid

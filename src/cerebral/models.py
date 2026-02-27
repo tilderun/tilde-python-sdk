@@ -88,6 +88,7 @@ class RepositoryData:
     name: str = ""
     description: str = ""
     visibility: str = ""
+    created_by_type: str = ""
     created_by: str = ""
     created_at: datetime | None = None
 
@@ -99,6 +100,7 @@ class RepositoryData:
             name=d.get("name", ""),
             description=d.get("description", ""),
             visibility=d.get("visibility", ""),
+            created_by_type=d.get("created_by_type", ""),
             created_by=d.get("created_by", ""),
             created_at=_parse_dt(d.get("created_at")),
         )
@@ -288,6 +290,7 @@ class Group:
     organization_id: str = ""
     name: str = ""
     description: str = ""
+    created_by_type: str = ""
     created_by: str = ""
     created_at: datetime | None = None
 
@@ -298,6 +301,7 @@ class Group:
             organization_id=d.get("organization_id", ""),
             name=d.get("name", ""),
             description=d.get("description", ""),
+            created_by_type=d.get("created_by_type", ""),
             created_by=d.get("created_by", ""),
             created_at=_parse_dt(d.get("created_at")),
         )
@@ -369,6 +373,7 @@ class Policy:
     description: str = ""
     rego: str = ""
     is_builtin: bool = False
+    created_by_type: str = ""
     created_by: str = ""
     created_at: datetime | None = None
     updated_at: datetime | None = None
@@ -382,6 +387,7 @@ class Policy:
             description=d.get("description", ""),
             rego=d.get("rego", ""),
             is_builtin=d.get("is_builtin", False),
+            created_by_type=d.get("created_by_type", ""),
             created_by=d.get("created_by", ""),
             created_at=_parse_dt(d.get("created_at")),
             updated_at=_parse_dt(d.get("updated_at")),
@@ -421,6 +427,7 @@ class AttachmentRecord:
     principal_type: str = ""
     principal_id: str = ""
     principal_name: str = ""
+    attached_by_type: str = ""
     attached_by: str = ""
     attached_at: datetime | None = None
 
@@ -433,6 +440,7 @@ class AttachmentRecord:
             principal_type=d.get("principal_type", ""),
             principal_id=d.get("principal_id", ""),
             principal_name=d.get("principal_name", ""),
+            attached_by_type=d.get("attached_by_type", ""),
             attached_by=d.get("attached_by", ""),
             attached_at=_parse_dt(d.get("attached_at")),
         )
@@ -538,6 +546,7 @@ class ImportJob:
     objects_imported: int | None = None
     commit_id: str = ""
     error: str = ""
+    created_by_type: str = ""
     created_by: str = ""
     created_at: datetime | None = None
     updated_at: datetime | None = None
@@ -556,6 +565,7 @@ class ImportJob:
             objects_imported=d.get("objects_imported"),
             commit_id=d.get("commit_id", ""),
             error=d.get("error", ""),
+            created_by_type=d.get("created_by_type", ""),
             created_by=d.get("created_by", ""),
             created_at=_parse_dt(d.get("created_at")),
             updated_at=_parse_dt(d.get("updated_at")),
@@ -571,6 +581,7 @@ class Role:
     organization_id: str = ""
     name: str = ""
     description: str = ""
+    created_by_type: str = ""
     created_by: str = ""
     created_by_name: str = ""
     created_at: datetime | None = None
@@ -583,6 +594,7 @@ class Role:
             organization_id=d.get("organization_id", ""),
             name=d.get("name", ""),
             description=d.get("description", ""),
+            created_by_type=d.get("created_by_type", ""),
             created_by=d.get("created_by", ""),
             created_by_name=d.get("created_by_name", ""),
             created_at=_parse_dt(d.get("created_at")),
@@ -600,6 +612,7 @@ class Agent:
     name: str = ""
     description: str = ""
     metadata: dict[str, str] = field(default_factory=dict)
+    created_by_type: str = ""
     created_at: datetime | None = None
     last_used_at: datetime | None = None
 
@@ -611,6 +624,7 @@ class Agent:
             name=d.get("name", ""),
             description=d.get("description", ""),
             metadata=d.get("metadata", {}),
+            created_by_type=d.get("created_by_type", ""),
             created_at=_parse_dt(d.get("created_at")),
             last_used_at=_parse_dt(d.get("last_used_at")),
         )

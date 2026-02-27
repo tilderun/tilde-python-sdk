@@ -57,14 +57,14 @@ class TestUserAgentHeader:
         c = Client(api_key="test-key")
         c._get_json("/healthcheck")
         ua = mock_api.calls.last.request.headers.get("user-agent", "")
-        assert ua == "cerebral-python-sdk/0.1.0"
+        assert ua == "cerebral-python-sdk/0.3.0"
 
     def test_extra_user_agent_appended(self, mock_api):
         mock_api.get("/healthcheck").mock(return_value=Response(200, json={"ok": True}))
-        c = Client(api_key="test-key", extra_user_agent="cerebral-mcp/0.1.0 claude-desktop/1.2.3")
+        c = Client(api_key="test-key", extra_user_agent="cerebral-mcp/0.3.0 claude-desktop/1.2.3")
         c._get_json("/healthcheck")
         ua = mock_api.calls.last.request.headers.get("user-agent", "")
-        assert ua == "cerebral-python-sdk/0.1.0 cerebral-mcp/0.1.0 claude-desktop/1.2.3"
+        assert ua == "cerebral-python-sdk/0.3.0 cerebral-mcp/0.3.0 claude-desktop/1.2.3"
 
 
 # ---------------------------------------------------------------------------
