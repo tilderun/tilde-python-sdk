@@ -38,6 +38,7 @@ class Commit:
         self._meta_range_id: str = ""
         self._object_count: int | None = None
         self._total_size: int | None = None
+        self._is_stale: bool = False
 
     @property
     def _repo_path(self) -> str:
@@ -63,6 +64,7 @@ class Commit:
         self._meta_range_id = data.get("meta_range_id", "")
         self._object_count = data.get("object_count")
         self._total_size = data.get("total_size")
+        self._is_stale = data.get("is_stale", False)
 
     @property
     def id(self) -> str:
@@ -117,6 +119,11 @@ class Commit:
     def total_size(self) -> int | None:
         self._ensure_loaded()
         return self._total_size
+
+    @property
+    def is_stale(self) -> bool:
+        self._ensure_loaded()
+        return self._is_stale
 
     @property
     def objects(self) -> ReadOnlyObjectCollection:

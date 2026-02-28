@@ -2934,6 +2934,9 @@ components:
           type: integer
           format: int64
           description: Total size in bytes of all objects in the committed snapshot
+        is_stale:
+          type: boolean
+          description: Whether this commit is beyond the repository's retention period. Objects from stale commits cannot be listed or read.
 
     # --- Objects ---
     ListingEntry:

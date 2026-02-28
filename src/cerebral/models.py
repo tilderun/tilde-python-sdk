@@ -149,6 +149,7 @@ class CommitData:
     metadata: dict[str, str] = field(default_factory=dict)
     object_count: int | None = None
     total_size: int | None = None
+    is_stale: bool = False
 
     @classmethod
     def from_dict(cls, d: dict[str, Any]) -> CommitData:
@@ -164,6 +165,7 @@ class CommitData:
             metadata=d.get("metadata", {}),
             object_count=d.get("object_count"),
             total_size=d.get("total_size"),
+            is_stale=d.get("is_stale", False),
         )
 
 

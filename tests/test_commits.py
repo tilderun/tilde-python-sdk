@@ -18,6 +18,7 @@ COMMIT_JSON = {
     "metadata": {"key": "value"},
     "object_count": 42,
     "total_size": 123456,
+    "is_stale": False,
 }
 
 
@@ -78,6 +79,7 @@ class TestCommit:
         assert commit.meta_range_id == "mr-001"
         assert commit.object_count == 42
         assert commit.total_size == 123456
+        assert commit.is_stale is False
 
     def test_objects_readonly(self, mock_api, repo):
         """Commit.objects returns ReadOnlyObjectCollection."""
