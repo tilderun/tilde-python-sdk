@@ -16,7 +16,7 @@ jobs:
           python-version: '3.12'
       - run: pip install detect-secrets
       - name: Scan for secrets
-        run: git ls-files -z | xargs -0 detect-secrets-hook
+        run: git ls-files -z | xargs -0 detect-secrets-hook --baseline .secrets.baseline
 
   test:
     runs-on: ubuntu-latest
