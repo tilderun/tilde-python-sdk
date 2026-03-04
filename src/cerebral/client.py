@@ -46,6 +46,7 @@ class Client:
         httpx_client: httpx.Client | None = None,
     ) -> None:
         self._config = resolve_config(endpoint_url=endpoint_url, api_key=api_key)
+        self._multipart_unsupported = False
         if httpx_client is not None:
             self._http = httpx_client
             self._owns_http = False

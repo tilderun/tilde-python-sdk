@@ -1120,7 +1120,7 @@ paths:
       summary: Check object existence and metadata
       description: >
         Returns the same headers as GET /object (ETag, Content-Type,
-        Content-Length, X-Cerebral-Reproducible) without streaming the body.
+        Content-Length) without streaming the body.
         Uses the GetObject authorization action.
       operationId: headObject
       parameters:
@@ -1301,6 +1301,227 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '409':
           $ref: '#/components/responses/Conflict'
+
+  /organizations/{organization}/repositories/{repository}/object/multipart:
+    post:
+      tags: [Objects]
+      summary: Initiate a multipart upload
+      description: >
+        Creates a multipart upload in block storage and returns an upload handle
+        with a signed token. The token must be passed to all subsequent multipart
+        operations (part upload, complete, abort).
+      operationId: initiateMultipartUpload
+      parameters:
+        - $ref: '#/components/parameters/Organization'
+        - $ref: '#/components/parameters/Repository'
+        - name: session_id
+          in: query
+          required: true
+          description: Session ID to stage the write into
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/Path'
+      responses:
+        '201':
+          description: Multipart upload initiated
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InitiateMultipartUploadResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '501':
+          description: Multipart upload not supported by storage backend
+
+  /organizations/{organization}/repositories/{repository}/object/multipart/part:
+    get:
+      tags: [Objects]
+      summary: Get a presigned URL for uploading a part
+      description: >
+        Returns a 307 redirect to a presigned S3 URL for uploading a single part.
+        The client should PUT the part data directly to the redirect URL.
+      operationId: getPartPresignedURL
+      parameters:
+        - $ref: '#/components/parameters/Organization'
+        - $ref: '#/components/parameters/Repository'
+        - name: token
+          in: query
+          required: true
+          description: Signed token from the initiate response
+          schema:
+            type: string
+        - name: session_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: path
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: physical_address
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: upload_id
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: expires_at
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: part_number
+          in: query
+          required: true
+          description: Part number (1-based, max 10000)
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 10000
+      responses:
+        '307':
+          description: Redirect to presigned upload URL
+          headers:
+            Location:
+              description: Presigned S3 URL for uploading the part
+              schema:
+                type: string
+                format: uri
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /organizations/{organization}/repositories/{repository}/object/multipart/complete:
+    post:
+      tags: [Objects]
+      summary: Complete a multipart upload
+      description: >
+        Completes the multipart upload in S3 and stages the catalog entry
+        in the given session. The total_size is authoritative (from client write tracking).
+      operationId: completeMultipartUpload
+      parameters:
+        - $ref: '#/components/parameters/Organization'
+        - $ref: '#/components/parameters/Repository'
+        - name: token
+          in: query
+          required: true
+          description: Signed token from the initiate response
+          schema:
+            type: string
+        - name: session_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: path
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: physical_address
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: upload_id
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: expires_at
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompleteMultipartUploadRequest'
+      responses:
+        '201':
+          description: Upload completed and catalog entry staged
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompleteMultipartUploadResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /organizations/{organization}/repositories/{repository}/object/multipart/abort:
+    post:
+      tags: [Objects]
+      summary: Abort a multipart upload
+      description: >
+        Aborts the multipart upload and cleans up any uploaded parts in S3.
+      operationId: abortMultipartUpload
+      parameters:
+        - $ref: '#/components/parameters/Organization'
+        - $ref: '#/components/parameters/Repository'
+        - name: token
+          in: query
+          required: true
+          description: Signed token from the initiate response
+          schema:
+            type: string
+        - name: session_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: path
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: physical_address
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: upload_id
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: expires_at
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '204':
+          description: Multipart upload aborted
+        '403':
+          $ref: '#/components/responses/Forbidden'
 
   /organizations/{organization}/repositories/{repository}/objects:
     get:
@@ -1701,6 +1922,46 @@ paths:
                 $ref: '#/components/schemas/ValidationResult'
         '400':
           $ref: '#/components/responses/BadRequest'
+
+  /organizations/{organization}/policies:generate:
+    post:
+      tags: [Policies]
+      summary: Generate a Rego policy from a natural language prompt using AI
+      operationId: generatePolicy
+      parameters:
+        - $ref: '#/components/parameters/Organization'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [prompt]
+              properties:
+                prompt:
+                  type: string
+                  description: Natural language description of the desired policy
+                  maxLength: 4000
+      responses:
+        '200':
+          description: Generated Rego policy
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [rego]
+                properties:
+                  rego:
+                    type: string
+                    description: Valid Rego policy source code
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
 
   /organizations/{organization}/policies/{policy_id}:
     get:
@@ -3104,6 +3365,66 @@ components:
         etag:
           type: string
 
+    InitiateMultipartUploadResponse:
+      type: object
+      required: [upload_id, physical_address, token, expires_at]
+      additionalProperties: false
+      properties:
+        upload_id:
+          type: string
+          description: S3 multipart upload ID
+        physical_address:
+          type: string
+          description: Physical address of the object in block storage
+        token:
+          type: string
+          description: HMAC-signed token binding this upload to a specific context
+        expires_at:
+          type: integer
+          format: int64
+          description: Unix timestamp when the token expires
+
+    CompleteMultipartUploadRequest:
+      type: object
+      required: [parts, total_size]
+      additionalProperties: false
+      properties:
+        parts:
+          type: array
+          items:
+            $ref: '#/components/schemas/CompletedPart'
+          minItems: 1
+          description: List of completed parts with their part numbers and ETags
+        content_type:
+          type: string
+          description: Content type of the uploaded object (defaults to application/octet-stream)
+        total_size:
+          type: integer
+          format: int64
+          description: Total size in bytes (authoritative, from client write tracking)
+
+    CompletedPart:
+      type: object
+      required: [part_number, etag]
+      additionalProperties: false
+      properties:
+        part_number:
+          type: integer
+          minimum: 1
+          maximum: 10000
+        etag:
+          type: string
+
+    CompleteMultipartUploadResponse:
+      type: object
+      required: [path, etag]
+      additionalProperties: false
+      properties:
+        path:
+          type: string
+        etag:
+          type: string
+
     DeleteObjectsRequest:
       type: object
       required: [paths]
@@ -3412,17 +3733,32 @@ components:
     # --- Import ---
     StartImportRequest:
       type: object
-      required: [connector_id, destination_path]
+      required: [destination_path]
+      description: >
+        Exactly one of `connector_id` or (`source_organization` + `source_repository`) must be provided.
       properties:
         connector_id:
           type: string
           format: uuid
+          description: >
+            Connector ID to import from. Mutually exclusive with
+            source_organization/source_repository.
+        source_organization:
+          type: string
+          description: >
+            Source organization slug for cross-repository import.
+            Required together with source_repository; mutually exclusive with connector_id.
+        source_repository:
+          type: string
+          description: >
+            Source repository name for cross-repository import.
+            Required together with source_organization; mutually exclusive with connector_id.
         destination_path:
           type: string
           description: Destination path prefix in the repository
         source_prefix:
           type: string
-          description: Optional sub-path appended to the connector's source URI to filter which objects are imported
+          description: Optional sub-path to filter which objects are imported
         commit_message:
           type: string
 
@@ -3438,6 +3774,17 @@ components:
         connector_id:
           type: string
           format: uuid
+          nullable: true
+        source_repository_id:
+          type: string
+          format: uuid
+          nullable: true
+        source_organization:
+          type: string
+          description: Display-only field populated for cross-repository imports
+        source_repository:
+          type: string
+          description: Display-only field populated for cross-repository imports
         destination_path:
           type: string
         source_prefix:
@@ -3494,6 +3841,24 @@ components:
             $ref: '#/components/schemas/Error'
     Conflict:
       description: Conflict
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    TooManyRequests:
+      description: Rate limit exceeded
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    BadGateway:
+      description: Upstream service error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    ServiceUnavailable:
+      description: Service not configured or temporarily unavailable
       content:
         application/json:
           schema:

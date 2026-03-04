@@ -2,13 +2,15 @@
 
 from __future__ import annotations
 
+import contextlib
+import pathlib
 from typing import TYPE_CHECKING, BinaryIO
 
 import httpx
 
 from cerebral._object_reader import ObjectReader
 from cerebral._pagination import DEFAULT_PAGE_SIZE, PageResult, PaginatedIterator
-from cerebral.exceptions import TransportError
+from cerebral.exceptions import APIError, TransportError
 from cerebral.models import ListingEntry, ObjectMetadata, PutObjectResult
 
 if TYPE_CHECKING:
@@ -16,6 +18,60 @@ if TYPE_CHECKING:
     from collections.abc import Iterable
 
     from cerebral.client import Client
+
+SINGLE_UPLOAD_LIMIT = 64 * 1024 * 1024  # 64 MB
+MULTIPART_PART_SIZE = 64 * 1024 * 1024  # 64 MB
+
+
+def _get_data_size(data: bytes | bytearray | memoryview | BinaryIO | Iterable[bytes]) -> int | None:
+    """Return the size of *data* in bytes, or ``None`` if unknown."""
+    if isinstance(data, (bytes, bytearray, memoryview)):
+        return len(data)
+    # BinaryIO with seek/tell
+    if hasattr(data, "seek") and hasattr(data, "tell"):
+        pos = data.tell()
+        data.seek(0, 2)  # seek to end
+        size: int = data.tell()
+        data.seek(pos)  # seek back
+        return size
+    return None
+
+
+def _iter_parts(
+    data: bytes | bytearray | memoryview | BinaryIO | Iterable[bytes],
+) -> Iterable[tuple[int, bytes]]:
+    """Yield ``(part_number, chunk)`` tuples of up to ``MULTIPART_PART_SIZE`` bytes."""
+    part_number = 1
+
+    if isinstance(data, (bytes, bytearray, memoryview)):
+        mv = memoryview(data)
+        offset = 0
+        while offset < len(mv):
+            end = min(offset + MULTIPART_PART_SIZE, len(mv))
+            yield part_number, bytes(mv[offset:end])
+            part_number += 1
+            offset = end
+        return
+
+    if isinstance(data, BinaryIO) or hasattr(data, "read"):
+        while True:
+            chunk = data.read(MULTIPART_PART_SIZE)
+            if not chunk:
+                break
+            yield part_number, chunk if isinstance(chunk, bytes) else bytes(chunk)
+            part_number += 1
+        return
+
+    # Iterable[bytes] — accumulate into part-sized buffers
+    buf = bytearray()
+    for piece in data:
+        buf.extend(piece)
+        while len(buf) >= MULTIPART_PART_SIZE:
+            yield part_number, bytes(buf[:MULTIPART_PART_SIZE])
+            buf = buf[MULTIPART_PART_SIZE:]
+            part_number += 1
+    if buf:
+        yield part_number, bytes(buf)
 
 
 class ReadOnlyObjectCollection:
@@ -220,18 +276,55 @@ class SessionObjectCollection:
     def put(
         self,
         path: str,
-        data: bytes | bytearray | memoryview | BinaryIO | Iterable[bytes],
+        data: bytes | bytearray | memoryview | BinaryIO | pathlib.Path | Iterable[bytes],
     ) -> PutObjectResult:
-        """Upload an object into this session via presigned URL.
+        """Upload an object into this session.
 
-        Uses a three-step flow: stage (get presigned URL), upload to the
-        presigned URL, then finalize to record the object in the catalog.
+        For data smaller than 64 MB (with known size), uses a single presigned
+        upload (stage/finalize).  Otherwise defaults to multipart upload.  If
+        the server returns 501 for multipart, falls back to single upload and
+        caches that fact for subsequent puts.
 
         Args:
             path: Object path.
-            data: Content as bytes, file-like, or iterable of bytes chunks.
+            data: Content as bytes, file-like, Path, or iterable of bytes chunks.
         """
-        # 1. Stage: obtain a presigned upload URL
+        fh: BinaryIO | None = None
+        try:
+            if isinstance(data, pathlib.Path):
+                fh = data.open("rb")
+                data = fh
+
+            size = _get_data_size(data)
+
+            use_single = (
+                size is not None and size < SINGLE_UPLOAD_LIMIT
+            ) or self._client._multipart_unsupported
+
+            if use_single:
+                return self._put_single(path, data)
+
+            # Attempt multipart
+            try:
+                return self._put_multipart(path, data)
+            except APIError as exc:
+                if exc.status_code == 501:
+                    self._client._multipart_unsupported = True
+                    # Reset stream position if possible
+                    if hasattr(data, "seek"):
+                        data.seek(0)
+                    return self._put_single(path, data)
+                raise
+        finally:
+            if fh is not None:
+                fh.close()
+
+    def _put_single(
+        self,
+        path: str,
+        data: bytes | bytearray | memoryview | BinaryIO | Iterable[bytes],
+    ) -> PutObjectResult:
+        """Upload via single presigned URL (stage → upload → finalize)."""
         stage = self._client._post_json(
             f"{self._repo_path}/object/stage",
             params={"session_id": self._session_id, "path": path},
@@ -241,7 +334,6 @@ class SessionObjectCollection:
         signature: str = stage["signature"]
         expires_at: str = stage["expires_at"]
 
-        # 2. Upload directly to the presigned URL
         if isinstance(data, (bytes, bytearray, memoryview)):
             content: bytes | BinaryIO | Iterable[bytes] = bytes(data)
         else:
@@ -260,7 +352,6 @@ class SessionObjectCollection:
                 f"Upload to presigned URL failed with status {upload_resp.status_code}"
             )
 
-        # 3. Finalize: record the object in the catalog
         finalize = self._client._put_json(
             f"{self._repo_path}/object/finalize",
             params={
@@ -275,6 +366,92 @@ class SessionObjectCollection:
             },
         )
         return PutObjectResult.from_dict(finalize)
+
+    def _put_multipart(
+        self,
+        path: str,
+        data: bytes | bytearray | memoryview | BinaryIO | Iterable[bytes],
+    ) -> PutObjectResult:
+        """Upload via multipart (initiate → upload parts → complete)."""
+        # 1. Initiate multipart upload
+        initiate = self._client._post_json(
+            f"{self._repo_path}/object/multipart",
+            params={"session_id": self._session_id, "path": path},
+        )
+        upload_id: str = initiate["upload_id"]
+        physical_address: str = initiate["physical_address"]
+        token: str = initiate["token"]
+
+        parts: list[dict[str, object]] = []
+        total_size = 0
+
+        try:
+            for part_number, chunk in _iter_parts(data):
+                # 2. Get presigned URL for this part
+                part_resp = self._client._http.get(
+                    f"{self._repo_path}/object/multipart/part",
+                    params={
+                        "token": token,
+                        "part_number": part_number,
+                        "upload_id": upload_id,
+                    },
+                    headers=self._client._auth_headers(),
+                    follow_redirects=False,
+                )
+                if part_resp.status_code not in (301, 302, 307, 308):
+                    raise TransportError(
+                        f"Expected redirect for part upload, got {part_resp.status_code}"
+                    )
+                presigned_url = part_resp.headers["Location"]
+
+                # Upload part to presigned URL
+                try:
+                    put_resp = self._client._http.put(
+                        presigned_url,
+                        content=chunk,
+                        headers={"Content-Type": "application/octet-stream"},
+                    )
+                except httpx.TransportError as exc:
+                    raise TransportError(
+                        f"Part {part_number} upload failed: {exc}", cause=exc
+                    ) from exc
+                if not put_resp.is_success:
+                    raise TransportError(
+                        f"Part {part_number} upload failed with status {put_resp.status_code}"
+                    )
+
+                etag = put_resp.headers.get("ETag", "")
+                parts.append({"part_number": part_number, "etag": etag})
+                total_size += len(chunk)
+
+            # 3. Complete multipart upload
+            complete = self._client._post_json(
+                f"{self._repo_path}/object/multipart/complete",
+                params={"session_id": self._session_id, "path": path},
+                json={
+                    "token": token,
+                    "upload_id": upload_id,
+                    "physical_address": physical_address,
+                    "parts": parts,
+                    "total_size": total_size,
+                    "content_type": "application/octet-stream",
+                },
+            )
+            return PutObjectResult.from_dict(complete)
+
+        except Exception:
+            # Abort on any failure
+            with contextlib.suppress(Exception):
+                self._client._post(
+                    f"{self._repo_path}/object/multipart/abort",
+                    params={"session_id": self._session_id, "path": path},
+                    json={
+                        "token": token,
+                        "upload_id": upload_id,
+                        "physical_address": physical_address,
+                    },
+                )
+            raise
 
     def delete(self, path: str) -> None:
         """Delete an object (stage tombstone in this session)."""
