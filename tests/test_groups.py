@@ -3,7 +3,7 @@
 import httpx
 import pytest
 
-from cerebral.models import EffectiveGroup, Group, GroupDetail
+from tilde.models import EffectiveGroup, Group, GroupDetail
 
 
 class TestGroupCollection:

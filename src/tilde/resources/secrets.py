@@ -4,17 +4,17 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from cerebral.models import SecretEntry
+from tilde.models import SecretEntry
 
 if TYPE_CHECKING:
-    from cerebral.client import Client
+    from tilde.client import Client
 
 
 class SecretManager:
     """Manage secrets at a given API path.
 
-    Used by both :class:`~cerebral.resources.repositories.Repository` and
-    :class:`~cerebral.resources.agents.AgentResource` to provide a uniform
+    Used by both :class:`~tilde.resources.repositories.Repository` and
+    :class:`~tilde.resources.agents.AgentResource` to provide a uniform
     interface for secret operations::
 
         repo.secret.set("DB_PASSWORD", "supersecret")

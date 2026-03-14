@@ -1,21 +1,21 @@
-"""Exception hierarchy for the Cerebral SDK.
+"""Exception hierarchy for the Tilde SDK.
 
-All exceptions raised by the SDK inherit from ``CerebralError``.
+All exceptions raised by the SDK inherit from ``TildeError``.
 API errors carry the HTTP status code, error body fields, and request context.
 """
 
 from __future__ import annotations
 
 
-class CerebralError(Exception):
-    """Base exception for all Cerebral SDK errors."""
+class TildeError(Exception):
+    """Base exception for all Tilde SDK errors."""
 
 
-class ConfigurationError(CerebralError):
+class ConfigurationError(TildeError):
     """Missing or invalid SDK configuration (e.g. missing API key)."""
 
 
-class TransportError(CerebralError):
+class TransportError(TildeError):
     """Network-level failure (DNS, timeout, connection refused).
 
     Wraps ``httpx.TransportError`` with a friendlier message.
@@ -26,11 +26,11 @@ class TransportError(CerebralError):
         self.__cause__ = cause
 
 
-class SerializationError(CerebralError):
+class SerializationError(TildeError):
     """Unexpected or malformed JSON in the API response."""
 
 
-class APIError(CerebralError):
+class APIError(TildeError):
     """Base for all HTTP API errors.
 
     Attributes:

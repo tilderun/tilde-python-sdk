@@ -3,7 +3,7 @@
 import httpx
 import pytest
 
-from cerebral.models import (
+from tilde.models import (
     AttachmentRecord,
     EffectivePolicy,
     Policy,

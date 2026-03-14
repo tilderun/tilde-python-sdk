@@ -1,4 +1,4 @@
-# Contributing to Cerebral Python SDK
+# Contributing to Tilde Python SDK
 
 Thank you for your interest in contributing! This document explains how to get
 started.
@@ -11,8 +11,8 @@ started.
 ## Setup
 
 ```bash
-git clone https://github.com/cerebral-storage/cerebral-python-sdk.git
-cd cerebral-python-sdk
+git clone https://github.com/tilde-run/tilde-python-sdk.git
+cd tilde-python-sdk
 uv sync --all-extras
 ```
 
@@ -33,7 +33,7 @@ uv run pytest
 With coverage:
 
 ```bash
-uv run pytest --cov=cerebral --cov-report=term-missing
+uv run pytest --cov=tilde --cov-report=term-missing
 ```
 
 ### Lint and format
@@ -53,7 +53,7 @@ uv run ruff format src/ tests/
 ### Type check
 
 ```bash
-uv run mypy src/cerebral/
+uv run mypy src/tilde/
 uv run mypy tests/typecheck/ --strict
 ```
 
@@ -61,7 +61,7 @@ uv run mypy tests/typecheck/ --strict
 
 - **Ruff** with line-length 100, target Python 3.11
 - **mypy** strict mode enabled
-- All public types are re-exported from `cerebral.__init__`
+- All public types are re-exported from `tilde.__init__`
 - Models use `@dataclass(slots=True)` with `from_dict()` classmethods
 - Tests use pytest with respx for HTTP mocking
 
@@ -81,7 +81,7 @@ CI on every push and pull request.
 1. Fork the repository and create a branch from `main`.
 2. Make your changes and add tests.
 3. Ensure all checks pass: `uv run pytest`, `uv run ruff check src/ tests/`,
-   `uv run ruff format --check src/ tests/`, and `uv run mypy src/cerebral/`.
+   `uv run ruff format --check src/ tests/`, and `uv run mypy src/tilde/`.
 4. Open a pull request against `main`.
 
 ## License

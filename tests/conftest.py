@@ -1,14 +1,14 @@
 import pytest
 import respx
 
-from cerebral.client import Client
+from tilde.client import Client
 
-BASE_URL = "https://cerebral.storage/api/v1"
+BASE_URL = "https://tilde.run/api/v1"
 
 
 @pytest.fixture
 def mock_api():
-    """respx mock router scoped to the Cerebral API base URL."""
+    """respx mock router scoped to the Tilde API base URL."""
     with respx.mock(base_url=BASE_URL, assert_all_called=False) as rsps:
         yield rsps
 

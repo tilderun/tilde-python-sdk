@@ -2,7 +2,7 @@
 
 import httpx
 
-from cerebral.models import Membership, Organization
+from tilde.models import Membership, Organization
 
 
 class TestOrganizationCollection:

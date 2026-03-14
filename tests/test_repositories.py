@@ -2,8 +2,8 @@
 
 import httpx
 
-from cerebral.models import RepositoryData
-from cerebral.resources.sessions import Session
+from tilde.models import RepositoryData
+from tilde.resources.sessions import Session
 
 
 class TestRepository:

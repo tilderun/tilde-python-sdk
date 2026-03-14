@@ -1,4 +1,4 @@
-"""MCP tool definitions for the Cerebral SDK."""
+"""MCP tool definitions for the Tilde SDK."""
 
 from __future__ import annotations
 
@@ -12,24 +12,24 @@ from typing import TYPE_CHECKING, Any, TypeVar
 from fastmcp import Context, FastMCP
 from fastmcp.exceptions import ToolError
 
-from cerebral._version import __version__
-from cerebral.client import Client
-from cerebral.exceptions import (
+from tilde._version import __version__
+from tilde.client import Client
+from tilde.exceptions import (
     AuthenticationError,
-    CerebralError,
     ConflictError,
     ForbiddenError,
     NotFoundError,
     ServerError,
+    TildeError,
     TransportError,
 )
 
 if TYPE_CHECKING:
-    from cerebral.resources.sessions import Session
+    from tilde.resources.sessions import Session
 
 F = TypeVar("F", bound=Callable[..., Any])
 
-mcp = FastMCP("Cerebral")
+mcp = FastMCP("Tilde")
 
 _lock = threading.Lock()
 _client: Client | None = None
@@ -44,17 +44,17 @@ def _validate_agent_key() -> str:
     Raises :class:`ToolError` when the key is missing or does not carry
     the ``cak-`` agent-key prefix.
     """
-    key = os.environ.get("CEREBRAL_API_KEY")
+    key = os.environ.get("TILDE_API_KEY")
     if not key:
-        raise ToolError("CEREBRAL_API_KEY environment variable is not set")
+        raise ToolError("TILDE_API_KEY environment variable is not set")
     if not key.startswith("cak-"):
-        raise ToolError("CEREBRAL_API_KEY must be an agent key (prefix 'cak-')")
+        raise ToolError("TILDE_API_KEY must be an agent key (prefix 'cak-')")
     return key
 
 
 def _build_mcp_user_agent(ctx: Context) -> str:
     """Build extra User-Agent segments from MCP context."""
-    parts = [f"cerebral-mcp/{__version__}"]
+    parts = [f"tilde-mcp/{__version__}"]
     try:
         client_info = ctx.session.client_params.clientInfo  # type: ignore[union-attr]
         if client_info.name:
@@ -109,7 +109,7 @@ def _handle_errors(fn: F) -> F:
         except ToolError:
             raise
         except AuthenticationError:
-            raise ToolError("Authentication failed. Check your CEREBRAL_API_KEY.") from None
+            raise ToolError("Authentication failed. Check your TILDE_API_KEY.") from None
         except ForbiddenError:
             repository = kwargs.get("repository", "")
             raise ToolError(f"Permission denied for {repository}.") from None
@@ -121,7 +121,7 @@ def _handle_errors(fn: F) -> F:
             raise ToolError(f"Network error: {e}") from None
         except ServerError as e:
             raise ToolError(f"Server error: {e}") from None
-        except CerebralError as e:
+        except TildeError as e:
             raise ToolError(str(e)) from None
 
     return wrapper  # type: ignore[return-value]
@@ -197,7 +197,7 @@ def create_repository(
 @mcp.tool()
 @_handle_errors
 def create_session(repository: str, ctx: Context) -> dict[str, str]:
-    """Create a new editing session on a Cerebral repository.
+    """Create a new editing session on a Tilde repository.
 
     Args:
         repository: Repository path in ``"org/repo"`` format.

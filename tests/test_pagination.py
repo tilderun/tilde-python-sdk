@@ -1,6 +1,6 @@
 import pytest
 
-from cerebral._pagination import DEFAULT_PAGE_SIZE, PageResult, PaginatedIterator
+from tilde._pagination import DEFAULT_PAGE_SIZE, PageResult, PaginatedIterator
 
 
 class TestDefaultPageSize:

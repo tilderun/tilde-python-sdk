@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from cerebral._pagination import DEFAULT_PAGE_SIZE, PageResult, PaginatedIterator
-from cerebral.models import (
+from tilde._pagination import DEFAULT_PAGE_SIZE, PageResult, PaginatedIterator
+from tilde.models import (
     AttachmentRecord,
     EffectivePolicy,
     Policy,
@@ -17,7 +17,7 @@ from cerebral.models import (
 if TYPE_CHECKING:
     import builtins
 
-    from cerebral.client import Client
+    from tilde.client import Client
 
 
 class PolicyCollection:

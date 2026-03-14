@@ -2,7 +2,7 @@
 
 import httpx
 
-from cerebral.models import CopyObjectResult, ListingEntry, ObjectMetadata, PutObjectResult
+from tilde.models import CopyObjectResult, ListingEntry, ObjectMetadata, PutObjectResult
 
 
 class TestReadOnlyObjectCollection:
@@ -38,7 +38,7 @@ class TestReadOnlyObjectCollection:
                 },
             )
         )
-        from cerebral.resources.objects import ReadOnlyObjectCollection
+        from tilde.resources.objects import ReadOnlyObjectCollection
 
         objects = ReadOnlyObjectCollection(repo._client, "test-org", "test-repo")
         items = list(objects.list())
@@ -56,11 +56,11 @@ class TestReadOnlyObjectCollection:
                     "etag": '"abc123"',
                     "content-type": "application/octet-stream",
                     "content-length": "1024",
-                    "x-cerebral-reproducible": "true",
+                    "x-tilde-reproducible": "true",
                 },
             )
         )
-        from cerebral.resources.objects import ReadOnlyObjectCollection
+        from tilde.resources.objects import ReadOnlyObjectCollection
 
         objects = ReadOnlyObjectCollection(repo._client, "test-org", "test-repo")
         meta = objects.head("foo")
@@ -136,7 +136,7 @@ class TestSessionObjectCollection:
                     "etag": '"abc123"',
                     "content-type": "application/octet-stream",
                     "content-length": "1024",
-                    "x-cerebral-reproducible": "true",
+                    "x-tilde-reproducible": "true",
                 },
             )
         )

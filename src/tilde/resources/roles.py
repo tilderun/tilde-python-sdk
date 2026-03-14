@@ -4,13 +4,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from cerebral._pagination import DEFAULT_PAGE_SIZE, PageResult, PaginatedIterator
-from cerebral.models import APIKey, APIKeyCreated, Role
+from tilde._pagination import DEFAULT_PAGE_SIZE, PageResult, PaginatedIterator
+from tilde.models import APIKey, APIKeyCreated, Role
 
 if TYPE_CHECKING:
     from datetime import datetime
 
-    from cerebral.client import Client
+    from tilde.client import Client
 
 
 class RoleAPIKeyCollection:

@@ -1,13 +1,13 @@
-"""Tests for cerebral.client.Client."""
+"""Tests for tilde.client.Client."""
 
 import httpx
 import pytest
 import respx
 from httpx import Response
 
-from cerebral._version import __version__
-from cerebral.client import Client
-from cerebral.exceptions import (
+from tilde._version import __version__
+from tilde.client import Client
+from tilde.exceptions import (
     AuthenticationError,
     BadRequestError,
     ConfigurationError,
@@ -16,7 +16,7 @@ from cerebral.exceptions import (
     TransportError,
 )
 
-BASE_URL = "https://cerebral.storage/api/v1"
+BASE_URL = "https://tilde.run/api/v1"
 
 
 # ---------------------------------------------------------------------------
@@ -50,22 +50,22 @@ class TestUserAgentHeader:
         client._get_json("/healthcheck")
 
         ua = mock_api.calls.last.request.headers.get("user-agent", "")
-        # The UA should mention "cerebral" (case-insensitive)
-        assert "cerebral" in ua.lower()
+        # The UA should mention "tilde" (case-insensitive)
+        assert "tilde" in ua.lower()
 
     def test_default_user_agent_has_no_extra(self, mock_api):
         mock_api.get("/healthcheck").mock(return_value=Response(200, json={"ok": True}))
         c = Client(api_key="test-key")
         c._get_json("/healthcheck")
         ua = mock_api.calls.last.request.headers.get("user-agent", "")
-        assert ua == f"cerebral-python-sdk/{__version__}"
+        assert ua == f"tilde-python-sdk/{__version__}"
 
     def test_extra_user_agent_appended(self, mock_api):
         mock_api.get("/healthcheck").mock(return_value=Response(200, json={"ok": True}))
-        c = Client(api_key="test-key", extra_user_agent="cerebral-mcp/0.3.0 claude-desktop/1.2.3")
+        c = Client(api_key="test-key", extra_user_agent="tilde-mcp/0.3.0 claude-desktop/1.2.3")
         c._get_json("/healthcheck")
         ua = mock_api.calls.last.request.headers.get("user-agent", "")
-        assert ua == f"cerebral-python-sdk/{__version__} cerebral-mcp/0.3.0 claude-desktop/1.2.3"
+        assert ua == f"tilde-python-sdk/{__version__} tilde-mcp/0.3.0 claude-desktop/1.2.3"
 
 
 # ---------------------------------------------------------------------------
@@ -77,14 +77,14 @@ class TestConfigurationError:
     """Client must raise ConfigurationError when no api_key is available at request time."""
 
     def test_none_api_key(self, mock_api, monkeypatch):
-        monkeypatch.delenv("CEREBRAL_API_KEY", raising=False)
+        monkeypatch.delenv("TILDE_API_KEY", raising=False)
         mock_api.get("/test").mock(return_value=httpx.Response(200, json={}))
         c = Client(api_key=None)
         with pytest.raises(ConfigurationError):
             c._get("/test")
 
     def test_no_api_key_at_all(self, mock_api, monkeypatch):
-        monkeypatch.delenv("CEREBRAL_API_KEY", raising=False)
+        monkeypatch.delenv("TILDE_API_KEY", raising=False)
         mock_api.get("/test").mock(return_value=httpx.Response(200, json={}))
         c = Client()
         with pytest.raises(ConfigurationError):
@@ -183,7 +183,7 @@ class TestRaiseForStatusNonJson:
 
 
 class TestTransportError:
-    """httpx.TransportError must be wrapped in cerebral.TransportError."""
+    """httpx.TransportError must be wrapped in tilde.TransportError."""
 
     def test_transport_error_is_wrapped(self, mock_api, client):
         mock_api.get("/down").mock(side_effect=httpx.ConnectError("refused"))

@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock
 
-from cerebral.resources.commits import Commit
+from tilde.resources.commits import Commit
 
 
 def check_commit_readonly() -> None:

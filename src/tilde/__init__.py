@@ -1,10 +1,10 @@
-"""Cerebral Python SDK.
+"""Tilde Python SDK.
 
 Quick start::
 
-    import cerebral
+    import tilde
 
-    repo = cerebral.repository('my-org/repo1')
+    repo = tilde.repository('my-org/repo1')
 
     with repo.session() as session:
         session.objects.put('foo/bar.csv', b'data')
@@ -15,13 +15,12 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from cerebral._version import __version__
-from cerebral.client import Client
-from cerebral.exceptions import (
+from tilde._version import __version__
+from tilde.client import Client
+from tilde.exceptions import (
     APIError,
     AuthenticationError,
     BadRequestError,
-    CerebralError,
     ConfigurationError,
     ConflictError,
     ForbiddenError,
@@ -31,9 +30,10 @@ from cerebral.exceptions import (
     PreconditionFailedError,
     SerializationError,
     ServerError,
+    TildeError,
     TransportError,
 )
-from cerebral.models import (
+from tilde.models import (
     Agent,
     APIKey,
     APIKeyCreated,
@@ -74,8 +74,8 @@ from cerebral.models import (
 )
 
 if TYPE_CHECKING:
-    from cerebral.resources.organizations import OrganizationCollection, OrgResource
-    from cerebral.resources.repositories import Repository
+    from tilde.resources.organizations import OrganizationCollection, OrgResource
+    from tilde.resources.repositories import Repository
 
 __all__ = [
     "APIError",
@@ -85,8 +85,6 @@ __all__ = [
     "AttachmentRecord",
     "AuthenticationError",
     "BadRequestError",
-    # Exceptions
-    "CerebralError",
     "Client",
     "CommitData",
     "CommitResult",
@@ -129,6 +127,8 @@ __all__ = [
     "SerializationError",
     "ServerError",
     "SourceMetadata",
+    # Exceptions
+    "TildeError",
     "TransportError",
     "ValidationError",
     "ValidationResult",

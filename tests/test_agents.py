@@ -2,10 +2,10 @@
 
 import httpx
 
-from cerebral.models import Agent, APIKey, APIKeyCreated
-from cerebral.resources.agents import AgentCollection, AgentResource, APIKeyResource
-from cerebral.resources.organizations import OrgResource
-from cerebral.resources.repositories import OrgRepositoryCollection
+from tilde.models import Agent, APIKey, APIKeyCreated
+from tilde.resources.agents import AgentCollection, AgentResource, APIKeyResource
+from tilde.resources.organizations import OrgResource
+from tilde.resources.repositories import OrgRepositoryCollection
 
 AGENT_RESPONSE = {
     "id": "agent-1",
@@ -232,7 +232,7 @@ class TestOrgResource:
                 },
             )
         )
-        from cerebral.models import RepositoryData
+        from tilde.models import RepositoryData
 
         repo = client.organization("test-org").repositories.create(
             "my-repo", description="A new repo"

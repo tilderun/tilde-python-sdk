@@ -6,13 +6,13 @@ import time
 import warnings
 from typing import TYPE_CHECKING, Any
 
-from cerebral._pagination import DEFAULT_PAGE_SIZE, PageResult, PaginatedIterator
-from cerebral.exceptions import NotFoundError
-from cerebral.models import CommitResult, EntryRecord
+from tilde._pagination import DEFAULT_PAGE_SIZE, PageResult, PaginatedIterator
+from tilde.exceptions import NotFoundError
+from tilde.models import CommitResult, EntryRecord
 
 if TYPE_CHECKING:
-    from cerebral.client import Client
-    from cerebral.resources.objects import SessionObjectCollection
+    from tilde.client import Client
+    from tilde.resources.objects import SessionObjectCollection
 
 _APPROVAL_POLL_INTERVAL = 2  # seconds
 
@@ -65,7 +65,7 @@ class Session:
     @property
     def objects(self) -> SessionObjectCollection:
         """Object access within this session (read and write)."""
-        from cerebral.resources.objects import SessionObjectCollection
+        from tilde.resources.objects import SessionObjectCollection
 
         return SessionObjectCollection(self._client, self._org, self._repo, self._session_id)
 
@@ -159,7 +159,7 @@ class Session:
         *,
         metadata: dict[str, str] | None = None,
     ) -> CommitResult:
-        """Commit and return a structured :class:`~cerebral.models.CommitResult`.
+        """Commit and return a structured :class:`~tilde.models.CommitResult`.
 
         Unlike :meth:`commit`, this method never blocks for approval and does
         not emit warnings — it simply returns the result envelope.

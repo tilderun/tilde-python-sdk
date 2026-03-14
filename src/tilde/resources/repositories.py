@@ -4,19 +4,19 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from cerebral._pagination import DEFAULT_PAGE_SIZE, PageResult, PaginatedIterator
-from cerebral.models import CommitData, RepositoryData, SecretEntry, _parse_dt
+from tilde._pagination import DEFAULT_PAGE_SIZE, PageResult, PaginatedIterator
+from tilde.models import CommitData, RepositoryData, SecretEntry, _parse_dt
 
 if TYPE_CHECKING:
     from datetime import datetime
 
-    from cerebral.client import Client
-    from cerebral.resources.connectors import RepoConnectorCollection
-    from cerebral.resources.imports import ImportResource
-    from cerebral.resources.sandbox_triggers import SandboxTriggerResource
-    from cerebral.resources.sandboxes import SandboxResource
-    from cerebral.resources.secrets import SecretManager
-    from cerebral.resources.sessions import Session
+    from tilde.client import Client
+    from tilde.resources.connectors import RepoConnectorCollection
+    from tilde.resources.imports import ImportResource
+    from tilde.resources.sandbox_triggers import SandboxTriggerResource
+    from tilde.resources.sandboxes import SandboxResource
+    from tilde.resources.secrets import SecretManager
+    from tilde.resources.sessions import Session
 
 
 class OrgRepositoryCollection:
@@ -77,7 +77,7 @@ class OrgRepositoryCollection:
 
 
 class Repository:
-    """A Cerebral repository.  Properties are lazy-loaded on first access."""
+    """A Tilde repository.  Properties are lazy-loaded on first access."""
 
     def __init__(self, client: Client, org: str, name: str) -> None:
         self._client = client
@@ -154,9 +154,9 @@ class Repository:
             session.commit('my changes')
 
         Returns:
-            A :class:`~cerebral.resources.sessions.Session`.
+            A :class:`~tilde.resources.sessions.Session`.
         """
-        from cerebral.resources.sessions import Session
+        from tilde.resources.sessions import Session
 
         data = self._client._post_json(f"{self._repo_path}/sessions")
         session_id = data["session_id"]
@@ -175,9 +175,9 @@ class Repository:
             session_id: The session ID to attach to.
 
         Returns:
-            A :class:`~cerebral.resources.sessions.Session`.
+            A :class:`~tilde.resources.sessions.Session`.
         """
-        from cerebral.resources.sessions import Session
+        from tilde.resources.sessions import Session
 
         return Session(self._client, self._org, self._name, session_id)
 
@@ -199,7 +199,7 @@ class Repository:
             amount: Page size (default 100).
 
         Returns:
-            An auto-paginating iterator of :class:`~cerebral.models.CommitData`.
+            An auto-paginating iterator of :class:`~tilde.models.CommitData`.
         """
         initial_after = after
 
@@ -252,7 +252,7 @@ class Repository:
             timeout_seconds: Maximum execution time in seconds.
             run_as: Run as a different principal (``{"type": "agent", "id": "..."}``)
         """
-        from cerebral.resources.sandboxes import create_sandbox
+        from tilde.resources.sandboxes import create_sandbox
 
         return create_sandbox(
             self._client,
@@ -269,7 +269,7 @@ class Repository:
 
     def sandboxes(self, *, after: str | None = None) -> PaginatedIterator[SandboxResource]:
         """List sandboxes in this repository."""
-        from cerebral.resources.sandboxes import list_sandboxes
+        from tilde.resources.sandboxes import list_sandboxes
 
         return list_sandboxes(self._client, self._org, self._name, after=after)
 
@@ -293,7 +293,7 @@ class Repository:
             description: Optional description.
             run_as: Run as a different principal (``{"type": "agent", "id": "..."}``)
         """
-        from cerebral.resources.sandbox_triggers import create_sandbox_trigger
+        from tilde.resources.sandbox_triggers import create_sandbox_trigger
 
         return create_sandbox_trigger(
             self._client,
@@ -310,7 +310,7 @@ class Repository:
         self, *, after: str | None = None
     ) -> PaginatedIterator[SandboxTriggerResource]:
         """List sandbox triggers in this repository."""
-        from cerebral.resources.sandbox_triggers import list_sandbox_triggers
+        from tilde.resources.sandbox_triggers import list_sandbox_triggers
 
         return list_sandbox_triggers(self._client, self._org, self._name, after=after)
 
@@ -319,7 +319,7 @@ class Repository:
     @property
     def secret(self) -> SecretManager:
         """Access secret operations for this repository."""
-        from cerebral.resources.secrets import SecretManager
+        from tilde.resources.secrets import SecretManager
 
         return SecretManager(self._client, f"{self._repo_path}/secrets")
 
@@ -331,13 +331,13 @@ class Repository:
 
     @property
     def connectors(self) -> RepoConnectorCollection:
-        from cerebral.resources.connectors import RepoConnectorCollection
+        from tilde.resources.connectors import RepoConnectorCollection
 
         return RepoConnectorCollection(self._client, self._org, self._name)
 
     @property
     def imports(self) -> ImportResource:
-        from cerebral.resources.imports import ImportResource
+        from tilde.resources.imports import ImportResource
 
         return ImportResource(self._client, self._org, self._name)
 

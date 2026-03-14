@@ -3,7 +3,7 @@
 import httpx
 import pytest
 
-from cerebral.models import ConnectorInfo
+from tilde.models import ConnectorInfo
 
 
 class TestConnectorCollection:

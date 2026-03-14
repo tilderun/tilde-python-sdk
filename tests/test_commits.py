@@ -2,9 +2,9 @@
 
 import httpx
 
-from cerebral.models import CommitData, ListingEntry
-from cerebral.resources.commits import Commit
-from cerebral.resources.objects import ReadOnlyObjectCollection
+from tilde.models import CommitData, ListingEntry
+from tilde.resources.commits import Commit
+from tilde.resources.objects import ReadOnlyObjectCollection
 
 COMMIT_JSON = {
     "id": "abc123",

@@ -5,10 +5,10 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass
 
-DEFAULT_ENDPOINT_URL = "https://cerebral.storage"
+DEFAULT_ENDPOINT_URL = "https://tilde.run"
 
-_ENV_API_KEY = "CEREBRAL_API_KEY"
-_ENV_ENDPOINT_URL = "CEREBRAL_ENDPOINT_URL"
+_ENV_API_KEY = "TILDE_API_KEY"  # pragma: allowlist secret
+_ENV_ENDPOINT_URL = "TILDE_ENDPOINT_URL"
 
 
 @dataclass(frozen=True)
@@ -16,7 +16,7 @@ class Configuration:
     """Resolved SDK configuration.
 
     ``api_key`` may be ``None`` at construction time; a
-    :class:`~cerebral.exceptions.ConfigurationError` is raised at request
+    :class:`~tilde.exceptions.ConfigurationError` is raised at request
     time if it is still unset.
     """
 

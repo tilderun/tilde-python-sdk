@@ -1,17 +1,17 @@
-# Cerebral Python SDK
+# Tilde Python SDK
 
-Python SDK for the [Cerebral](https://cerebral.storage) data versioning API.
+Python SDK for the [Tilde](https://tilde.run) data versioning API.
 
 ## Installation
 
 ```bash
-pip install cerebral-sdk
+pip install tilde-sdk
 ```
 
 Or with [uv](https://github.com/astral-sh/uv):
 
 ```bash
-uv add cerebral-sdk
+uv add tilde-sdk
 ```
 
 ## Quick Start
@@ -19,13 +19,13 @@ uv add cerebral-sdk
 ### Using environment variables (simplest)
 
 ```bash
-export CEREBRAL_API_KEY="your-api-key"
+export TILDE_API_KEY="your-api-key"
 ```
 
 ```python
-import cerebral
+import tilde
 
-repo = cerebral.repository("my-org/my-repo")
+repo = tilde.repository("my-org/my-repo")
 print(repo.description)  # lazy-loaded on first access
 
 with repo.session() as session:
@@ -36,16 +36,16 @@ with repo.session() as session:
 ### Explicit configuration
 
 ```python
-import cerebral
+import tilde
 
-cerebral.configure(api_key="your-api-key", endpoint_url="https://custom.endpoint")
-repo = cerebral.repository("my-org/my-repo")
+tilde.configure(api_key="your-api-key", endpoint_url="https://custom.endpoint")
+repo = tilde.repository("my-org/my-repo")
 ```
 
 ### Explicit client (most flexible)
 
 ```python
-from cerebral import Client
+from tilde import Client
 
 with Client(api_key="your-api-key") as client:
     repo = client.repository("my-org/my-repo")
@@ -58,8 +58,8 @@ with Client(api_key="your-api-key") as client:
 
 | Option | Environment Variable | Default |
 |--------|---------------------|---------|
-| `api_key` | `CEREBRAL_API_KEY` | *required* |
-| `endpoint_url` | `CEREBRAL_ENDPOINT_URL` | `https://cerebral.storage` |
+| `api_key` | `TILDE_API_KEY` | *required* |
+| `endpoint_url` | `TILDE_ENDPOINT_URL` | `https://tilde.run` |
 
 Resolution order: explicit parameter > environment variable > default.
 
@@ -71,7 +71,7 @@ when the first request is made.
 ### Repositories
 
 ```python
-repo = cerebral.repository("my-org/my-repo")
+repo = tilde.repository("my-org/my-repo")
 
 # Lazy-loaded properties
 print(repo.id, repo.description, repo.visibility)
@@ -172,7 +172,7 @@ for commit in repo.timeline():
 ### Organizations
 
 ```python
-orgs = cerebral.Client(api_key="key").organizations
+orgs = tilde.Client(api_key="key").organizations
 
 # Create
 org = orgs.create("my-org", "My Organization")
@@ -193,7 +193,7 @@ orgs.members("my-org").add(user_id="user-uuid", role="member")
 Manage agents and their API keys using the fluent organization resource:
 
 ```python
-org = cerebral.organization("my-org")
+org = tilde.organization("my-org")
 
 # Create an agent
 agent = org.agents.create("my-agent", description="CI bot", metadata={"env": "prod"})
@@ -237,7 +237,7 @@ The organization resource also provides access to repositories, members, groups,
 policies, and connectors:
 
 ```python
-org = cerebral.organization("my-org")
+org = tilde.organization("my-org")
 
 for repo in org.repositories.list():
     print(repo.name)
@@ -264,7 +264,7 @@ groups.remove_member(group.id, "user", "user-uuid")
 policies = client.organizations.policies("my-org")
 
 # Create and validate
-result = policies.validate("package cerebral.authz\ndefault allow = true")
+result = policies.validate("package tilde.authz\ndefault allow = true")
 policy = policies.create("allow-all", rego="...", description="Allow everything")
 
 # Attach/detach
@@ -298,10 +298,10 @@ print(status.status, status.objects_imported)
 
 ## Error Handling
 
-All SDK exceptions inherit from `CerebralError`:
+All SDK exceptions inherit from `TildeError`:
 
 ```
-CerebralError                        # base for all SDK errors
+TildeError                           # base for all SDK errors
 +-- ConfigurationError               # missing API key, bad endpoint
 +-- TransportError                   # network failures, DNS, timeouts
 +-- SerializationError               # invalid JSON in response
@@ -321,7 +321,7 @@ CerebralError                        # base for all SDK errors
 `response_text` for debugging.
 
 ```python
-from cerebral import NotFoundError, CerebralError
+from tilde import NotFoundError, TildeError
 
 try:
     with repo.session() as session:
@@ -329,7 +329,7 @@ try:
             f.read()
 except NotFoundError as e:
     print(f"Not found: {e.message} (request_id={e.request_id})")
-except CerebralError as e:
+except TildeError as e:
     print(f"SDK error: {e}")
 ```
 
@@ -374,17 +374,17 @@ with repo.objects.get("data/file.parquet", byte_range=(0, 1023)) as f:
 ## MCP Server
 
 The SDK includes an [MCP](https://modelcontextprotocol.io/) server that exposes
-Cerebral operations as tools for AI agents. The API key must be an agent key
+Tilde operations as tools for AI agents. The API key must be an agent key
 (prefix `cak-`).
 
 ### Running
 
 ```bash
 # Via uvx
-uvx --from cerebral-sdk cerebral-mcp
+uvx --from tilde-sdk tilde-mcp
 
 # Or as a Python module
-CEREBRAL_API_KEY=cak-... python -m cerebral.mcp
+TILDE_API_KEY=cak-... python -m tilde.mcp
 ```
 
 ### Available Tools
@@ -402,12 +402,12 @@ CEREBRAL_API_KEY=cak-... python -m cerebral.mcp
 
 ### Configuration
 
-The server reads `CEREBRAL_API_KEY` from the environment on every tool call.
+The server reads `TILDE_API_KEY` from the environment on every tool call.
 Only agent keys (`cak-` prefix) are accepted.
 
 ## Documentation
 
-Full documentation is available at <https://docs.cerebral.storage/python-sdk/>.
+Full documentation is available at <https://docs.tilde.run/python-sdk/>.
 
 ## Development
 
@@ -423,7 +423,7 @@ uv run ruff check src/ tests/
 uv run ruff format src/ tests/
 
 # Type check
-uv run mypy src/cerebral/
+uv run mypy src/tilde/
 
 # Build
 uv build

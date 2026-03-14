@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 
     import httpx
 
-    from cerebral.client import Client
+    from tilde.client import Client
 
 
 class ObjectReader:
@@ -80,7 +80,7 @@ class ObjectReader:
         cl = response.headers.get("content-length")
         self._content_length = int(cl) if cl else None
         self._content_range = response.headers.get("content-range")
-        repro = response.headers.get("x-cerebral-reproducible")
+        repro = response.headers.get("x-tilde-reproducible")
         if repro == "true":
             self._reproducible = True
         elif repro == "false":
@@ -108,7 +108,7 @@ class ObjectReader:
 
     @property
     def reproducible(self) -> bool | None:
-        """Derived from ``X-Cerebral-Reproducible`` header."""
+        """Derived from ``X-Tilde-Reproducible`` header."""
         return self._reproducible
 
     def read(self, n: int = -1) -> bytes:

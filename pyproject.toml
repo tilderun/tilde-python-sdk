@@ -3,9 +3,9 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "cerebral-sdk"
+name = "tilde-sdk"
 dynamic = ["version"]
-description = "Python SDK for the Cerebral data versioning API"
+description = "Python SDK for the Tilde data versioning API"
 readme = "README.md"
 license = "Apache-2.0"
 requires-python = ">=3.11"
@@ -23,17 +23,17 @@ classifiers = [
 dependencies = ["httpx>=0.25.0,<1.0", "fastmcp>=2.0"]
 
 [project.scripts]
-cerebral-mcp = "cerebral.mcp:main"
+tilde-mcp = "tilde.mcp:main"
 
 [project.urls]
-Homepage = "https://github.com/cerebral-storage/cerebral-python-sdk"
-Documentation = "https://docs.cerebral.storage/python-sdk/"
+Homepage = "https://github.com/tilde-run/tilde-python-sdk"
+Documentation = "https://docs.tilde.run/python-sdk/"
 
 [tool.hatch.version]
-path = "src/cerebral/_version.py"
+path = "src/tilde/_version.py"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/cerebral"]
+packages = ["src/tilde"]
 
 [project.optional-dependencies]
 dev = [

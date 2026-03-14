@@ -4,13 +4,13 @@ import json
 
 import httpx
 
-from cerebral.models import (
+from tilde.models import (
     SandboxTriggerCondition,
     SandboxTriggerConfig,
     SandboxTriggerData,
     SandboxTriggerRunData,
 )
-from cerebral.resources.sandbox_triggers import SandboxTriggerResource
+from tilde.resources.sandbox_triggers import SandboxTriggerResource
 
 BASE_PATH = "/organizations/test-org/repositories/test-repo/sandbox-triggers"
 

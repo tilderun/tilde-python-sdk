@@ -1,56 +1,55 @@
-"""Tests for the module-level API (cerebral package)."""
+"""Tests for the module-level API (tilde package)."""
 
 
 class TestModuleAPI:
     def test_version(self):
-        """cerebral.__version__ is a string."""
-        import cerebral
+        """tilde.__version__ is a string."""
+        import tilde
 
-        assert isinstance(cerebral.__version__, str)
-        assert len(cerebral.__version__) > 0
+        assert isinstance(tilde.__version__, str)
+        assert len(tilde.__version__) > 0
 
     def test_configure_and_repository(self):
-        """cerebral.configure() then cerebral.repository() returns a Repository."""
-        import cerebral
-        from cerebral.resources.repositories import Repository
+        """tilde.configure() then tilde.repository() returns a Repository."""
+        import tilde
+        from tilde.resources.repositories import Repository
 
         # Reset default client
-        cerebral._default_client = None
+        tilde._default_client = None
 
-        cerebral.configure(api_key="test-key-module")
-        repo = cerebral.repository("my-org/my-repo")
+        tilde.configure(api_key="test-key-module")
+        repo = tilde.repository("my-org/my-repo")
         assert isinstance(repo, Repository)
 
         # Cleanup
-        if cerebral._default_client is not None:
-            cerebral._default_client.close()
-            cerebral._default_client = None
+        if tilde._default_client is not None:
+            tilde._default_client.close()
+            tilde._default_client = None
 
     def test_default_client_created_lazily(self):
         """Default client is created lazily on first use."""
-        import cerebral
+        import tilde
 
         # Reset default client
-        cerebral._default_client = None
+        tilde._default_client = None
 
-        assert cerebral._default_client is None
+        assert tilde._default_client is None
 
         # Calling _get_default_client should create one
-        client = cerebral._get_default_client()
+        client = tilde._get_default_client()
         assert client is not None
-        assert cerebral._default_client is client
+        assert tilde._default_client is client
 
         # Cleanup
-        cerebral._default_client.close()
-        cerebral._default_client = None
+        tilde._default_client.close()
+        tilde._default_client = None
 
     def test_exception_exports(self):
-        """All exception classes are importable from cerebral."""
-        from cerebral import (
+        """All exception classes are importable from tilde."""
+        from tilde import (
             APIError,
             AuthenticationError,
             BadRequestError,
-            CerebralError,
             ConfigurationError,
             ConflictError,
             ForbiddenError,
@@ -60,13 +59,14 @@ class TestModuleAPI:
             PreconditionFailedError,
             SerializationError,
             ServerError,
+            TildeError,
             TransportError,
         )
 
-        assert issubclass(ConfigurationError, CerebralError)
-        assert issubclass(TransportError, CerebralError)
-        assert issubclass(SerializationError, CerebralError)
-        assert issubclass(APIError, CerebralError)
+        assert issubclass(ConfigurationError, TildeError)
+        assert issubclass(TransportError, TildeError)
+        assert issubclass(SerializationError, TildeError)
+        assert issubclass(APIError, TildeError)
         assert issubclass(BadRequestError, APIError)
         assert issubclass(AuthenticationError, APIError)
         assert issubclass(ForbiddenError, APIError)
@@ -78,8 +78,8 @@ class TestModuleAPI:
         assert issubclass(ServerError, APIError)
 
     def test_model_exports(self):
-        """Key models are importable from cerebral."""
-        from cerebral import (
+        """Key models are importable from tilde."""
+        from tilde import (
             CommitData,
             ImportJob,
             Organization,

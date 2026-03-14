@@ -2,7 +2,7 @@
 
 import httpx
 
-from cerebral.models import ImportJob
+from tilde.models import ImportJob
 
 
 class TestImportResource:

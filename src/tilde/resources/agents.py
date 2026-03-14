@@ -4,14 +4,14 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from cerebral._pagination import DEFAULT_PAGE_SIZE, PageResult, PaginatedIterator
-from cerebral.models import Agent, APIKey, APIKeyCreated, SecretEntry
+from tilde._pagination import DEFAULT_PAGE_SIZE, PageResult, PaginatedIterator
+from tilde.models import Agent, APIKey, APIKeyCreated, SecretEntry
 
 if TYPE_CHECKING:
     from datetime import datetime
 
-    from cerebral.client import Client
-    from cerebral.resources.secrets import SecretManager
+    from tilde.client import Client
+    from tilde.resources.secrets import SecretManager
 
 
 class APIKeyCollection:
@@ -156,7 +156,7 @@ class AgentResource:
     @property
     def secret(self) -> SecretManager:
         """Access secret operations for this agent."""
-        from cerebral.resources.secrets import SecretManager
+        from tilde.resources.secrets import SecretManager
 
         return SecretManager(
             self._client,

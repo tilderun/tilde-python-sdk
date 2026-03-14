@@ -3,7 +3,7 @@ from unittest.mock import MagicMock
 
 import httpx
 
-from cerebral._object_reader import ObjectReader
+from tilde._object_reader import ObjectReader
 
 
 def make_mock_client(content=b"hello", headers=None):
@@ -127,7 +127,7 @@ class TestHeaderExtraction:
     def test_reproducible_extracted_from_headers(self):
         client, _ = make_mock_client(
             content=b"data",
-            headers={"x-cerebral-reproducible": "true"},
+            headers={"x-tilde-reproducible": "true"},
         )
         reader = ObjectReader(client, "/objects/foo", params={})
         reader.read()

@@ -1,4 +1,4 @@
-"""Dataclass models for Cerebral API responses.
+"""Dataclass models for Tilde API responses.
 
 All models use ``@dataclass(slots=True)`` with ``from_dict()`` classmethods
 that map API JSON to typed Python objects.  Datetime fields are parsed from

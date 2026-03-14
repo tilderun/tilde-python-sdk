@@ -4,16 +4,16 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from cerebral.models import Membership, Organization
+from tilde.models import Membership, Organization
 
 if TYPE_CHECKING:
-    from cerebral.client import Client
-    from cerebral.resources.agents import AgentCollection
-    from cerebral.resources.connectors import ConnectorCollection
-    from cerebral.resources.groups import GroupCollection
-    from cerebral.resources.policies import PolicyCollection
-    from cerebral.resources.repositories import OrgRepositoryCollection
-    from cerebral.resources.roles import RoleCollection
+    from tilde.client import Client
+    from tilde.resources.agents import AgentCollection
+    from tilde.resources.connectors import ConnectorCollection
+    from tilde.resources.groups import GroupCollection
+    from tilde.resources.policies import PolicyCollection
+    from tilde.resources.repositories import OrgRepositoryCollection
+    from tilde.resources.roles import RoleCollection
 
 
 class MemberCollection:
@@ -70,25 +70,25 @@ class OrganizationCollection:
 
     def groups(self, org: str) -> GroupCollection:
         """Access group operations for an organization."""
-        from cerebral.resources.groups import GroupCollection
+        from tilde.resources.groups import GroupCollection
 
         return GroupCollection(self._client, org)
 
     def policies(self, org: str) -> PolicyCollection:
         """Access policy operations for an organization."""
-        from cerebral.resources.policies import PolicyCollection
+        from tilde.resources.policies import PolicyCollection
 
         return PolicyCollection(self._client, org)
 
     def connectors(self, org: str) -> ConnectorCollection:
         """Access connector operations for an organization."""
-        from cerebral.resources.connectors import ConnectorCollection
+        from tilde.resources.connectors import ConnectorCollection
 
         return ConnectorCollection(self._client, org)
 
     def roles(self, org: str) -> RoleCollection:
         """Access role operations for an organization."""
-        from cerebral.resources.roles import RoleCollection
+        from tilde.resources.roles import RoleCollection
 
         return RoleCollection(self._client, org)
 
@@ -113,14 +113,14 @@ class OrgResource:
     @property
     def agents(self) -> AgentCollection:
         """Access agent operations for this organization."""
-        from cerebral.resources.agents import AgentCollection
+        from tilde.resources.agents import AgentCollection
 
         return AgentCollection(self._client, self._org)
 
     @property
     def repositories(self) -> OrgRepositoryCollection:
         """Access repository listing for this organization."""
-        from cerebral.resources.repositories import OrgRepositoryCollection
+        from tilde.resources.repositories import OrgRepositoryCollection
 
         return OrgRepositoryCollection(self._client, self._org)
 
@@ -132,27 +132,27 @@ class OrgResource:
     @property
     def groups(self) -> GroupCollection:
         """Access group operations for this organization."""
-        from cerebral.resources.groups import GroupCollection
+        from tilde.resources.groups import GroupCollection
 
         return GroupCollection(self._client, self._org)
 
     @property
     def policies(self) -> PolicyCollection:
         """Access policy operations for this organization."""
-        from cerebral.resources.policies import PolicyCollection
+        from tilde.resources.policies import PolicyCollection
 
         return PolicyCollection(self._client, self._org)
 
     @property
     def connectors(self) -> ConnectorCollection:
         """Access connector operations for this organization."""
-        from cerebral.resources.connectors import ConnectorCollection
+        from tilde.resources.connectors import ConnectorCollection
 
         return ConnectorCollection(self._client, self._org)
 
     @property
     def roles(self) -> RoleCollection:
         """Access role operations for this organization."""
-        from cerebral.resources.roles import RoleCollection
+        from tilde.resources.roles import RoleCollection
 
         return RoleCollection(self._client, self._org)

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from cerebral._pagination import DEFAULT_PAGE_SIZE, PageResult, PaginatedIterator
+from tilde._pagination import DEFAULT_PAGE_SIZE, PageResult, PaginatedIterator
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 if TYPE_CHECKING:
     import httpx
 
-    from cerebral.client import Client
+    from tilde.client import Client
 
 
 class LogStream:

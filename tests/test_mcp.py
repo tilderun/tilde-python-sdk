@@ -1,4 +1,4 @@
-"""Tests for the Cerebral MCP server tools."""
+"""Tests for the Tilde MCP server tools."""
 
 from __future__ import annotations
 
@@ -9,10 +9,10 @@ import httpx
 import pytest
 import respx
 
-from cerebral._version import __version__
-from cerebral.mcp import server as mcp_server
+from tilde._version import __version__
+from tilde.mcp import server as mcp_server
 
-BASE_URL = "https://cerebral.storage/api/v1"
+BASE_URL = "https://tilde.run/api/v1"
 ORG = "test-org"
 REPO = "test-repo"
 REPOSITORY = f"{ORG}/{REPO}"
@@ -58,7 +58,7 @@ def _reset_server_state():
 @pytest.fixture(autouse=True)
 def _agent_key_env(monkeypatch: pytest.MonkeyPatch):
     """Set a valid agent key by default; individual tests can override."""
-    monkeypatch.setenv("CEREBRAL_API_KEY", "cak-test-key")
+    monkeypatch.setenv("TILDE_API_KEY", "cak-test-key")
 
 
 @pytest.fixture()
@@ -74,14 +74,14 @@ def mock_api():
 
 class TestApiKeyValidation:
     def test_missing_key(self, monkeypatch: pytest.MonkeyPatch):
-        monkeypatch.delenv("CEREBRAL_API_KEY", raising=False)
+        monkeypatch.delenv("TILDE_API_KEY", raising=False)
         from fastmcp.exceptions import ToolError
 
         with pytest.raises(ToolError, match="not set"):
             mcp_server._validate_agent_key()
 
     def test_wrong_prefix(self, monkeypatch: pytest.MonkeyPatch):
-        monkeypatch.setenv("CEREBRAL_API_KEY", "sk-xxx")
+        monkeypatch.setenv("TILDE_API_KEY", "sk-xxx")
         from fastmcp.exceptions import ToolError
 
         with pytest.raises(ToolError, match="agent key"):
@@ -565,7 +565,7 @@ class TestCommitSession:
                 202,
                 json={
                     "approval_required": True,
-                    "web_url": "https://cerebral.storage/test-org/test-repo/approve/sess-1",
+                    "web_url": "https://tilde.run/test-org/test-repo/approve/sess-1",
                 },
             )
         )
@@ -577,7 +577,7 @@ class TestCommitSession:
         )
         assert result["status"] == "approval_required"
         assert result["commit_id"] is None
-        assert "cerebral.storage" in result["web_url"]
+        assert "tilde.run" in result["web_url"]
         assert (REPOSITORY, "sess-1") not in mcp_server._sessions
 
 
@@ -692,7 +692,7 @@ class TestKeyRotation:
         old_client = mcp_server._client
 
         # Change key to B
-        monkeypatch.setenv("CEREBRAL_API_KEY", "cak-other-key")
+        monkeypatch.setenv("TILDE_API_KEY", "cak-other-key")
 
         mock_api.post(f"{REPO_PATH}/sessions").mock(
             return_value=httpx.Response(201, json={"session_id": "sess-b"})
@@ -712,14 +712,14 @@ class TestKeyRotation:
 
 class TestMcpUserAgent:
     def test_mcp_user_agent_in_requests(self, mock_api: respx.MockRouter, ctx: MagicMock):
-        """Requests via MCP tools should include cerebral-mcp in the User-Agent."""
+        """Requests via MCP tools should include tilde-mcp in the User-Agent."""
         mock_api.post(f"{REPO_PATH}/sessions").mock(
             return_value=httpx.Response(201, json={"session_id": "sess-1"})
         )
         mcp_server.create_session(repository=REPOSITORY, ctx=ctx)
         ua = mock_api.calls.last.request.headers.get("user-agent", "")
-        assert "cerebral-python-sdk/" in ua
-        assert "cerebral-mcp/" in ua
+        assert "tilde-python-sdk/" in ua
+        assert "tilde-mcp/" in ua
 
     def test_mcp_user_agent_includes_client_info(self, mock_api: respx.MockRouter):
         """When the MCP client provides its identity, it appears in the UA."""
@@ -729,18 +729,18 @@ class TestMcpUserAgent:
         )
         mcp_server.create_session(repository=REPOSITORY, ctx=ctx_with_client)
         ua = mock_api.calls.last.request.headers.get("user-agent", "")
-        assert "cerebral-mcp/" in ua
+        assert "tilde-mcp/" in ua
         assert "claude-desktop/1.2.3" in ua
 
     def test_build_mcp_user_agent_no_client_info(self):
-        """Without client info, only cerebral-mcp is included."""
+        """Without client info, only tilde-mcp is included."""
         ctx = _make_ctx()
         ua = mcp_server._build_mcp_user_agent(ctx)
-        assert ua.startswith("cerebral-mcp/")
+        assert ua.startswith("tilde-mcp/")
         assert "claude" not in ua.lower()
 
     def test_build_mcp_user_agent_with_client_info(self):
-        """With client info, both cerebral-mcp and client identity are included."""
+        """With client info, both tilde-mcp and client identity are included."""
         ctx = _make_ctx(client_name="claude-desktop", client_version="1.2.3")
         ua = mcp_server._build_mcp_user_agent(ctx)
-        assert ua == f"cerebral-mcp/{__version__} claude-desktop/1.2.3"
+        assert ua == f"tilde-mcp/{__version__} claude-desktop/1.2.3"

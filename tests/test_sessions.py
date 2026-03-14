@@ -7,7 +7,7 @@ from unittest.mock import patch
 import httpx
 import pytest
 
-from cerebral.resources.sessions import Session
+from tilde.resources.sessions import Session
 
 
 class TestSessionCreation:
@@ -118,10 +118,10 @@ class TestSessionApproval:
         "session_id": "sess-approve-1",
         "message": "Approval required for agent commits",
         "api_url": (
-            "https://cerebral.storage/api/v1/organizations/test-org"
+            "https://tilde.run/api/v1/organizations/test-org"
             "/repositories/test-repo/sessions/sess-approve-1/approve"
         ),
-        "web_url": ("https://app.cerebral.storage/test-org/test-repo/approve/sess-approve-1"),
+        "web_url": ("https://app.tilde.run/test-org/test-repo/approve/sess-approve-1"),
     }
 
     def test_commit_approval_required_block(self, mock_api, repo):
@@ -146,7 +146,7 @@ class TestSessionApproval:
         )
         session = repo.session()
         with (
-            patch("cerebral.resources.sessions.time.sleep") as mock_sleep,
+            patch("tilde.resources.sessions.time.sleep") as mock_sleep,
             warnings.catch_warnings(record=True) as w,
         ):
             warnings.simplefilter("always")
@@ -154,7 +154,7 @@ class TestSessionApproval:
         assert commit_id == ""
         assert len(w) == 1
         assert "Approval required" in str(w[0].message)
-        assert "https://app.cerebral.storage/" in str(w[0].message)
+        assert "https://app.tilde.run/" in str(w[0].message)
         assert head_route.call_count == 2
         assert mock_sleep.call_count == 2
         assert session._committed is True

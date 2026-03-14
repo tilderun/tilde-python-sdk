@@ -2,8 +2,8 @@
 
 import httpx
 
-from cerebral.models import SecretEntry
-from cerebral.resources.secrets import SecretManager
+from tilde.models import SecretEntry
+from tilde.resources.secrets import SecretManager
 
 REPO_SECRETS_PATH = "/organizations/test-org/repositories/test-repo/secrets"
 AGENT_SECRETS_PATH = "/organizations/test-org/agents/data-pipeline/secrets"

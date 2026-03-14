@@ -4,10 +4,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from cerebral.models import ImportJob
+from tilde.models import ImportJob
 
 if TYPE_CHECKING:
-    from cerebral.client import Client
+    from tilde.client import Client
 
 
 class ImportResource:

@@ -1,14 +1,13 @@
-"""Tests for the cerebral.exceptions module."""
+"""Tests for the tilde.exceptions module."""
 
 from typing import ClassVar
 
 import pytest
 
-from cerebral.exceptions import (
+from tilde.exceptions import (
     APIError,
     AuthenticationError,
     BadRequestError,
-    CerebralError,
     ConfigurationError,
     ConflictError,
     ForbiddenError,
@@ -18,6 +17,7 @@ from cerebral.exceptions import (
     PreconditionFailedError,
     SerializationError,
     ServerError,
+    TildeError,
     TransportError,
     api_error_for_status,
 )
@@ -27,23 +27,23 @@ from cerebral.exceptions import (
 # ---------------------------------------------------------------------------
 
 
-class TestCerebralErrorHierarchy:
-    """CerebralError is the root of the exception tree."""
+class TestTildeErrorHierarchy:
+    """TildeError is the root of the exception tree."""
 
-    def test_cerebral_error_is_exception(self):
-        assert issubclass(CerebralError, Exception)
+    def test_tilde_error_is_exception(self):
+        assert issubclass(TildeError, Exception)
 
-    def test_configuration_error_inherits_cerebral_error(self):
-        assert issubclass(ConfigurationError, CerebralError)
+    def test_configuration_error_inherits_tilde_error(self):
+        assert issubclass(ConfigurationError, TildeError)
 
-    def test_transport_error_inherits_cerebral_error(self):
-        assert issubclass(TransportError, CerebralError)
+    def test_transport_error_inherits_tilde_error(self):
+        assert issubclass(TransportError, TildeError)
 
-    def test_serialization_error_inherits_cerebral_error(self):
-        assert issubclass(SerializationError, CerebralError)
+    def test_serialization_error_inherits_tilde_error(self):
+        assert issubclass(SerializationError, TildeError)
 
-    def test_api_error_inherits_cerebral_error(self):
-        assert issubclass(APIError, CerebralError)
+    def test_api_error_inherits_tilde_error(self):
+        assert issubclass(APIError, TildeError)
 
 
 # ---------------------------------------------------------------------------
@@ -61,7 +61,7 @@ class TestAPIError:
             code="internal_error",
             request_id="req-abc-123",
             method="POST",
-            url="https://cerebral.storage/api/v1/objects",
+            url="https://tilde.run/api/v1/objects",
             response_text="raw body",
         )
         defaults.update(overrides)
@@ -74,7 +74,7 @@ class TestAPIError:
         assert err.code == "internal_error"
         assert err.request_id == "req-abc-123"
         assert err.method == "POST"
-        assert err.url == "https://cerebral.storage/api/v1/objects"
+        assert err.url == "https://tilde.run/api/v1/objects"
         assert err.response_text == "raw body"
 
     def test_response_text_truncated_to_500_chars(self):
@@ -200,6 +200,6 @@ class TestTransportError:
         err = TransportError("boom", cause=None)
         assert err.__cause__ is None
 
-    def test_inherits_cerebral_error(self):
+    def test_inherits_tilde_error(self):
         err = TransportError("boom", cause=None)
-        assert isinstance(err, CerebralError)
+        assert isinstance(err, TildeError)

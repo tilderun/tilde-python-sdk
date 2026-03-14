@@ -2,9 +2,9 @@
 
 import httpx
 
-from cerebral.models import APIKey, APIKeyCreated, Role
-from cerebral.resources.organizations import OrgResource
-from cerebral.resources.roles import RoleAPIKeyResource, RoleCollection, RoleResource
+from tilde.models import APIKey, APIKeyCreated, Role
+from tilde.resources.organizations import OrgResource
+from tilde.resources.roles import RoleAPIKeyResource, RoleCollection, RoleResource
 
 ROLE_RESPONSE = {
     "id": "role-1",

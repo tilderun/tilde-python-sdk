@@ -1,10 +1,10 @@
 openapi: 3.0.3
 info:
-  title: Cerebral API
+  title: Tilde API
   description: Cloud data versioning service for heterogeneous sources.
   version: 1.0.0
   contact:
-    name: Cerebral
+    name: Tilde
 servers:
   - url: /api/v1
 
@@ -1065,10 +1065,10 @@ paths:
               schema:
                 type: integer
                 format: int64
-            X-Cerebral-Meta-*:
+            X-Tilde-Meta-*:
               description: >
                 User-defined metadata headers. Each key from the object's metadata
-                map is returned as X-Cerebral-Meta-<key>.
+                map is returned as X-Tilde-Meta-<key>.
               schema:
                 type: string
           content:
@@ -1160,10 +1160,10 @@ paths:
               schema:
                 type: integer
                 format: int64
-            X-Cerebral-Meta-*:
+            X-Tilde-Meta-*:
               description: >
                 User-defined metadata headers. Each key from the object's metadata
-                map is returned as X-Cerebral-Meta-<key>.
+                map is returned as X-Tilde-Meta-<key>.
               schema:
                 type: string
         '403':
@@ -1186,7 +1186,7 @@ paths:
             format: uuid
         - $ref: '#/components/parameters/Path'
       description: >
-        Upload an object. Set custom metadata via X-Cerebral-Meta-<key> request headers.
+        Upload an object. Set custom metadata via X-Tilde-Meta-<key> request headers.
       requestBody:
         required: true
         content:
@@ -3049,6 +3049,30 @@ paths:
       responses:
         '200':
           description: Stderr stream
+          content:
+            text/plain:
+              schema:
+                type: string
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '410':
+          description: Logs have been evicted
+
+  /organizations/{organization}/repositories/{repository}/sandboxes/{sandbox_id}/combined:
+    get:
+      tags: [Sandboxes]
+      summary: Stream sandbox combined output
+      description: >
+        Interleaved stdout and stderr stream, in the order output was produced
+        by the container (similar to terminal shell output).
+      operationId: getSandboxCombined
+      parameters:
+        - $ref: '#/components/parameters/Organization'
+        - $ref: '#/components/parameters/Repository'
+        - $ref: '#/components/parameters/SandboxID'
+      responses:
+        '200':
+          description: Combined stdout+stderr stream
           content:
             text/plain:
               schema:

@@ -8,16 +8,16 @@ from typing import TYPE_CHECKING, BinaryIO
 
 import httpx
 
-from cerebral._object_reader import ObjectReader
-from cerebral._pagination import DEFAULT_PAGE_SIZE, PageResult, PaginatedIterator
-from cerebral.exceptions import APIError, TransportError
-from cerebral.models import CopyObjectResult, ListingEntry, ObjectMetadata, PutObjectResult
+from tilde._object_reader import ObjectReader
+from tilde._pagination import DEFAULT_PAGE_SIZE, PageResult, PaginatedIterator
+from tilde.exceptions import APIError, TransportError
+from tilde.models import CopyObjectResult, ListingEntry, ObjectMetadata, PutObjectResult
 
 if TYPE_CHECKING:
     import builtins
     from collections.abc import Iterable
 
-    from cerebral.client import Client
+    from tilde.client import Client
 
 SINGLE_UPLOAD_LIMIT = 64 * 1024 * 1024  # 64 MB
 MULTIPART_PART_SIZE = 64 * 1024 * 1024  # 64 MB
@@ -149,7 +149,7 @@ class ReadOnlyObjectCollection:
                 Use ``(offset, None)`` to read from *offset* to the end.
 
         Returns:
-            An :class:`~cerebral._object_reader.ObjectReader`.
+            An :class:`~tilde._object_reader.ObjectReader`.
         """
         return ObjectReader(
             self._client,
@@ -164,14 +164,14 @@ class ReadOnlyObjectCollection:
         """Check object existence and retrieve metadata from headers.
 
         Returns:
-            An :class:`~cerebral.models.ObjectMetadata` with etag,
+            An :class:`~tilde.models.ObjectMetadata` with etag,
             content_type, content_length, and reproducible fields.
         """
         response = self._client._head(
             f"{self._repo_path}/object",
             params={"path": path},
         )
-        repro_header = response.headers.get("x-cerebral-reproducible")
+        repro_header = response.headers.get("x-tilde-reproducible")
         reproducible: bool | None = None
         if repro_header == "true":
             reproducible = True
@@ -259,7 +259,7 @@ class SessionObjectCollection:
             f"{self._repo_path}/object",
             params={"session_id": self._session_id, "path": path},
         )
-        repro_header = response.headers.get("x-cerebral-reproducible")
+        repro_header = response.headers.get("x-tilde-reproducible")
         reproducible: bool | None = None
         if repro_header == "true":
             reproducible = True
@@ -461,7 +461,7 @@ class SessionObjectCollection:
             destination_path: Path for the new copy.
 
         Returns:
-            A :class:`~cerebral.models.CopyObjectResult`.
+            A :class:`~tilde.models.CopyObjectResult`.
         """
         data = self._client._post_json(
             f"{self._repo_path}/object/copy",

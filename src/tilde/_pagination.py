@@ -1,4 +1,4 @@
-"""Offset-based pagination iterator for the Cerebral API."""
+"""Offset-based pagination iterator for the Tilde API."""
 
 from __future__ import annotations
 

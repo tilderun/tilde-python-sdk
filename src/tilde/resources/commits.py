@@ -4,14 +4,14 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from cerebral._pagination import DEFAULT_PAGE_SIZE, PageResult, PaginatedIterator
-from cerebral.models import ListingEntry, _parse_dt
+from tilde._pagination import DEFAULT_PAGE_SIZE, PageResult, PaginatedIterator
+from tilde.models import ListingEntry, _parse_dt
 
 if TYPE_CHECKING:
     from datetime import datetime
 
-    from cerebral.client import Client
-    from cerebral.resources.objects import ReadOnlyObjectCollection
+    from tilde.client import Client
+    from tilde.resources.objects import ReadOnlyObjectCollection
 
 
 class Commit:
@@ -131,7 +131,7 @@ class Commit:
     @property
     def objects(self) -> ReadOnlyObjectCollection:
         """Read-only object access at this commit's snapshot."""
-        from cerebral.resources.objects import ReadOnlyObjectCollection
+        from tilde.resources.objects import ReadOnlyObjectCollection
 
         return ReadOnlyObjectCollection(self._client, self._org, self._repo)
 
@@ -178,7 +178,7 @@ class Commit:
 
         Returns:
             An auto-paginating iterator of
-            :class:`~cerebral.models.ListingEntry` with ``status`` indicating
+            :class:`~tilde.models.ListingEntry` with ``status`` indicating
             ``added``, ``modified``, or ``removed``.
         """
         self._ensure_loaded()

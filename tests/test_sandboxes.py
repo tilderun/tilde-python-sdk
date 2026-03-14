@@ -2,8 +2,8 @@
 
 import httpx
 
-from cerebral.models import SandboxData
-from cerebral.resources.sandboxes import LogStream, SandboxResource, SandboxStatus
+from tilde.models import SandboxData
+from tilde.resources.sandboxes import LogStream, SandboxResource, SandboxStatus
 
 BASE_PATH = "/organizations/test-org/repositories/test-repo/sandboxes"
 
@@ -173,14 +173,14 @@ class TestSandboxStatus:
                     "status_reason": "policy requires approval",
                     "exit_code": 0,
                     "commit_id": "",
-                    "web_url": "https://app.cerebral.storage/approve/sbx-approve",
+                    "web_url": "https://app.tilde.run/approve/sbx-approve",
                 },
             )
         )
         sandbox = repo.sandbox(image="python:3.10")
         status = sandbox.status()
         assert status.state == "awaiting_approval"
-        assert status.web_url == "https://app.cerebral.storage/approve/sbx-approve"
+        assert status.web_url == "https://app.tilde.run/approve/sbx-approve"
 
 
 class TestSandboxCancel:

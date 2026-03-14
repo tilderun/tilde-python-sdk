@@ -43,13 +43,13 @@ jobs:
         run: uv run ruff format --check src/ tests/
 
       - name: Type check (src)
-        run: uv run mypy src/cerebral/
+        run: uv run mypy src/tilde/
 
       - name: Type check (readonly assertions)
         run: uv run mypy tests/typecheck/ --strict || true
 
       - name: Test
-        run: uv run pytest --cov=cerebral --cov-report=term-missing
+        run: uv run pytest --cov=tilde --cov-report=term-missing
 
       - name: Upload coverage
         if: matrix.python-version == '3.12'

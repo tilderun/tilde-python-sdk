@@ -1,4 +1,4 @@
-"""HTTP client for the Cerebral API."""
+"""HTTP client for the Tilde API."""
 
 from __future__ import annotations
 
@@ -7,9 +7,9 @@ from typing import TYPE_CHECKING, Any
 
 import httpx
 
-from cerebral._config import resolve_config
-from cerebral._version import __version__
-from cerebral.exceptions import (
+from tilde._config import resolve_config
+from tilde._version import __version__
+from tilde.exceptions import (
     ConfigurationError,
     SerializationError,
     TransportError,
@@ -19,21 +19,21 @@ from cerebral.exceptions import (
 if TYPE_CHECKING:
     from collections.abc import Iterator
 
-    from cerebral.resources.organizations import OrganizationCollection, OrgResource
-    from cerebral.resources.repositories import Repository
+    from tilde.resources.organizations import OrganizationCollection, OrgResource
+    from tilde.resources.repositories import Repository
 
 
 class Client:
-    """Cerebral API client.
+    """Tilde API client.
 
     Args:
         endpoint_url: Override the API endpoint (default: env or
-            ``https://cerebral.storage``).
-        api_key: API key.  Falls back to ``CEREBRAL_API_KEY`` env var.
+            ``https://tilde.run``).
+        api_key: API key.  Falls back to ``TILDE_API_KEY`` env var.
             May be ``None`` at construction; raises
-            :class:`~cerebral.exceptions.ConfigurationError` at request time.
+            :class:`~tilde.exceptions.ConfigurationError` at request time.
         extra_user_agent: Additional User-Agent segments appended after the
-            SDK identifier (e.g. ``"cerebral-mcp/0.1.0 claude-desktop/1.2"``).
+            SDK identifier (e.g. ``"tilde-mcp/0.1.0 claude-desktop/1.2"``).
         httpx_client: Optional pre-configured ``httpx.Client`` for testing.
     """
 
@@ -51,7 +51,7 @@ class Client:
             self._http = httpx_client
             self._owns_http = False
         else:
-            ua = f"cerebral-python-sdk/{__version__}"
+            ua = f"tilde-python-sdk/{__version__}"
             if extra_user_agent:
                 ua = f"{ua} {extra_user_agent}"
             self._http = httpx.Client(
@@ -65,7 +65,7 @@ class Client:
     def _ensure_api_key(self) -> str:
         if self._config.api_key is None:
             raise ConfigurationError(
-                "No API key configured. Set CEREBRAL_API_KEY or pass api_key= to Client()."
+                "No API key configured. Set TILDE_API_KEY or pass api_key= to Client()."
             )
         return self._config.api_key
 
@@ -175,12 +175,12 @@ class Client:
     # -- Resource access -----------------------------------------------------
 
     def repository(self, repo_path: str) -> Repository:
-        """Get a :class:`~cerebral.resources.repositories.Repository` resource.
+        """Get a :class:`~tilde.resources.repositories.Repository` resource.
 
         Args:
             repo_path: Repository path in ``"org/repo"`` format.
         """
-        from cerebral.resources.repositories import Repository
+        from tilde.resources.repositories import Repository
 
         parts = repo_path.split("/", 1)
         if len(parts) != 2 or not parts[0] or not parts[1]:
@@ -188,15 +188,15 @@ class Client:
         return Repository(self, parts[0], parts[1])
 
     def organization(self, org: str) -> OrgResource:
-        """Get an :class:`~cerebral.resources.organizations.OrgResource` for fluent access."""
-        from cerebral.resources.organizations import OrgResource
+        """Get an :class:`~tilde.resources.organizations.OrgResource` for fluent access."""
+        from tilde.resources.organizations import OrgResource
 
         return OrgResource(self, org)
 
     @property
     def organizations(self) -> OrganizationCollection:
         """Access the organizations API."""
-        from cerebral.resources.organizations import OrganizationCollection
+        from tilde.resources.organizations import OrganizationCollection
 
         return OrganizationCollection(self)
 
