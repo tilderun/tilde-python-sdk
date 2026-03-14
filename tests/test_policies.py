@@ -28,7 +28,7 @@ class TestPolicyCollection:
                     "organization_id": "org-1",
                     "name": "deny-deletes",
                     "description": "Deny all deletes",
-                    "rego": "package cerebral\ndefault allow = false",
+                    "rego": "package tilde\ndefault allow = false",
                     "is_builtin": False,
                     "created_by": "user-1",
                     "created_at": "2025-04-01T10:00:00Z",
@@ -37,7 +37,7 @@ class TestPolicyCollection:
         )
         policy = policies.create(
             "deny-deletes",
-            "package cerebral\ndefault allow = false",
+            "package tilde\ndefault allow = false",
             description="Deny all deletes",
         )
         assert isinstance(policy, Policy)
@@ -82,7 +82,7 @@ class TestPolicyCollection:
                         "organization_id": "org-1",
                         "name": "deny-deletes",
                         "description": "Deny all deletes",
-                        "rego": "package cerebral",
+                        "rego": "package tilde",
                         "is_builtin": False,
                         "created_by": "user-1",
                     },
@@ -145,7 +145,7 @@ class TestPolicyCollection:
                 },
             )
         )
-        result = policies.validate("package cerebral\ndefault allow = true")
+        result = policies.validate("package tilde\ndefault allow = true")
         assert isinstance(result, ValidationResult)
         assert result.valid is True
         assert result.errors == []

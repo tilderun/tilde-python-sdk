@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "tilde-sdk"
 dynamic = ["version"]
-description = "Python SDK for the Tilde data versioning API"
+description = "Official Python SDK for Tilde: an agent-native data platform that combines versioned object storage with sandboxed compute"
 readme = "README.md"
 license = "Apache-2.0"
 requires-python = ">=3.11"
@@ -26,7 +26,7 @@ dependencies = ["httpx>=0.25.0,<1.0", "fastmcp>=2.0"]
 tilde-mcp = "tilde.mcp:main"
 
 [project.urls]
-Homepage = "https://github.com/tilde-run/tilde-python-sdk"
+Homepage = "https://github.com/tilderun/tilde-python-sdk"
 Documentation = "https://docs.tilde.run/python-sdk/"
 
 [tool.hatch.version]

@@ -11,7 +11,7 @@ started.
 ## Setup
 
 ```bash
-git clone https://github.com/tilde-run/tilde-python-sdk.git
+git clone https://github.com/tilderun/tilde-python-sdk.git
 cd tilde-python-sdk
 uv sync --all-extras
 ```
