@@ -15,12 +15,14 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from tilde._output_stream import OutputStream
 from tilde._version import __version__
 from tilde.client import Client
 from tilde.exceptions import (
     APIError,
     AuthenticationError,
     BadRequestError,
+    CommandError,
     ConfigurationError,
     ConflictError,
     ForbiddenError,
@@ -28,6 +30,7 @@ from tilde.exceptions import (
     LockedError,
     NotFoundError,
     PreconditionFailedError,
+    SandboxError,
     SerializationError,
     ServerError,
     TildeError,
@@ -62,6 +65,7 @@ from tilde.models import (
     RepositoryData,
     RepositoryWithOrg,
     Role,
+    RunResult,
     SandboxData,
     SandboxTriggerCondition,
     SandboxTriggerConfig,
@@ -86,6 +90,7 @@ __all__ = [
     "AuthenticationError",
     "BadRequestError",
     "Client",
+    "CommandError",
     "CommitData",
     "CommitResult",
     "ConfigurationError",
@@ -108,8 +113,8 @@ __all__ = [
     "NotFoundError",
     "ObjectMetadata",
     "OrgSummary",
-    # Models
     "Organization",
+    "OutputStream",
     "Policy",
     "PolicyDetail",
     "PolicySummary",
@@ -118,7 +123,9 @@ __all__ = [
     "RepositoryData",
     "RepositoryWithOrg",
     "Role",
+    "RunResult",
     "SandboxData",
+    "SandboxError",
     "SandboxTriggerCondition",
     "SandboxTriggerConfig",
     "SandboxTriggerData",
@@ -127,12 +134,10 @@ __all__ = [
     "SerializationError",
     "ServerError",
     "SourceMetadata",
-    # Exceptions
     "TildeError",
     "TransportError",
     "ValidationError",
     "ValidationResult",
-    # Core
     "__version__",
     "configure",
     "organization",
@@ -147,6 +152,7 @@ def configure(
     *,
     api_key: str | None = None,
     endpoint_url: str | None = None,
+    default_sandbox_image: str | None = None,
 ) -> None:
     """Configure the default client.
 
@@ -156,7 +162,11 @@ def configure(
     global _default_client
     if _default_client is not None:
         _default_client.close()
-    _default_client = Client(api_key=api_key, endpoint_url=endpoint_url)
+    _default_client = Client(
+        api_key=api_key,
+        endpoint_url=endpoint_url,
+        default_sandbox_image=default_sandbox_image,
+    )
 
 
 def _get_default_client() -> Client:

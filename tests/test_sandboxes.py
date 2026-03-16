@@ -53,6 +53,37 @@ class TestCreateSandbox:
             "id": "00000000-0000-0000-0000-000000000001",
         }
 
+    def test_create_sandbox_interactive(self, mock_api, repo):
+        """POST .../sandboxes with interactive=True includes it in body."""
+        route = mock_api.post(BASE_PATH).mock(
+            return_value=httpx.Response(201, json={"sandbox_id": "sbx-int"})
+        )
+        from tilde.resources.sandboxes import create_sandbox
+
+        sandbox = create_sandbox(
+            repo._client,
+            "test-org",
+            "test-repo",
+            image="python:3.10",
+            interactive=True,
+        )
+        assert sandbox.id == "sbx-int"
+        import json
+
+        payload = json.loads(route.calls[0].request.content)
+        assert payload["interactive"] is True
+
+    def test_create_sandbox_not_interactive_by_default(self, mock_api, repo):
+        """POST .../sandboxes omits interactive when False."""
+        route = mock_api.post(BASE_PATH).mock(
+            return_value=httpx.Response(201, json={"sandbox_id": "sbx-noint"})
+        )
+        repo.sandbox(image="python:3.10")
+        import json
+
+        payload = json.loads(route.calls[0].request.content)
+        assert "interactive" not in payload
+
 
 class TestListSandboxes:
     def test_list_sandboxes(self, mock_api, repo):

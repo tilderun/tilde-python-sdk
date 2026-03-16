@@ -30,6 +30,24 @@ class SerializationError(TildeError):
     """Unexpected or malformed JSON in the API response."""
 
 
+class SandboxError(TildeError):
+    """General sandbox operation error."""
+
+
+class CommandError(SandboxError):
+    """Non-zero exit code from a sandbox command.
+
+    Attributes:
+        result: The :class:`~tilde.models.RunResult` from the failed command.
+        command: The command string that was executed.
+    """
+
+    def __init__(self, message: str, *, result: object, command: str) -> None:
+        super().__init__(message)
+        self.result = result
+        self.command = command
+
+
 class APIError(TildeError):
     """Base for all HTTP API errors.
 

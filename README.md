@@ -16,8 +16,6 @@ uv add tilde-sdk
 
 ## Quick Start
 
-### Using environment variables (simplest)
-
 ```bash
 export TILDE_API_KEY="your-api-key"
 ```
@@ -26,33 +24,52 @@ export TILDE_API_KEY="your-api-key"
 import tilde
 
 repo = tilde.repository("my-org/my-repo")
-print(repo.description)  # lazy-loaded on first access
 
-with repo.session() as session:
-    session.objects.put("data/example.csv", b"col1,col2\na,b\n")
-    session.commit("added example csv")
+# Run commands in an interactive sandbox
+with repo.shell(image="python:3.12") as sh:
+    sh.run("pip install pandas")
+    result = sh.run("python train.py")
+    print(result.stdout.text())
+
+    # Stream output line by line
+    result = sh.run("cat /sandbox/results.csv")
+    for line in result.stdout.iter_lines():
+        print(line)
 ```
 
-### Explicit configuration
+> [!IMPORTANT]
+> **Transactional by default.** All filesystem modifications made in a sandbox
+> happen in the context of a transactional session. If anything fails midway or
+> is aborted, changes don't take effect. Only successful sandboxes' changes are
+> committed atomically to the repository -- so your data is always in a
+> consistent state. See [Sessions](#sessions) for more details.
+
+### One-shot execution
+
+For a single command that doesn't need an interactive session:
 
 ```python
-import tilde
+result = repo.execute("python train.py", image="python:3.12")
+print(result.stdout.text())
 
-tilde.configure(api_key="your-api-key", endpoint_url="https://custom.endpoint")
-repo = tilde.repository("my-org/my-repo")
+# check=False to handle errors yourself
+result = repo.execute("might-fail", check=False)
+if result.exit_code != 0:
+    print(result.stderr.text())
 ```
 
-### Explicit client (most flexible)
+### Output streams
 
-```python
-from tilde import Client
+Both `execute()` and `shell.run()` return a `RunResult` whose `stdout` and
+`stderr` fields are `OutputStream` objects:
 
-with Client(api_key="your-api-key") as client:
-    repo = client.repository("my-org/my-repo")
-    with repo.session() as session:
-        session.objects.put("data/file.csv", b"content")
-        session.commit("update data")
-```
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `.read()` | `bytes` | Full output as raw bytes |
+| `.text(encoding='utf-8')` | `str` | Full output decoded as a string |
+| `.iter_bytes(chunk_size)` | `Iterator[bytes]` | Yield byte chunks |
+| `.iter_text(chunk_size)` | `Iterator[str]` | Yield text chunks |
+| `.iter_lines()` | `Iterator[str]` | Yield lines (no trailing newlines) |
 
 ## Configuration
 
@@ -65,6 +82,24 @@ Resolution order: explicit parameter > environment variable > default.
 
 A missing API key is not an error at construction time; a `ConfigurationError` is raised
 when the first request is made.
+
+### Explicit configuration
+
+```python
+import tilde
+
+tilde.configure(api_key="your-api-key", endpoint_url="https://custom.endpoint")
+repo = tilde.repository("my-org/my-repo")
+```
+
+### Explicit client
+
+```python
+from tilde import Client
+
+with Client(api_key="your-api-key") as client:
+    repo = client.repository("my-org/my-repo")
+```
 
 ## Usage
 
@@ -81,81 +116,6 @@ repo.update(description="New description", visibility="public")
 
 # Delete
 repo.delete()
-```
-
-### Sessions
-
-Sessions are the primary way to read and write objects. They act like transactions:
-stage changes, then commit or rollback.
-
-```python
-# Context manager (recommended) — rolls back on error
-with repo.session() as session:
-    objects = session.objects.list(prefix="data/", delimiter="/")
-    session.objects.put("data/report.csv", b"content")
-    session.commit("update CSV files")
-
-# Explicit control
-session = repo.session()
-print(session.session_id)
-session.objects.put("data/file.csv", b"content")
-session.commit("modifying data in parallel")
-# or: session.rollback()
-```
-
-### Attaching to an Existing Session
-
-Resume a session from another thread, process, or machine:
-
-```python
-# In another thread/process/machine:
-session = repo.attach(session_id)
-session.objects.put("data/file2.csv", b"more content")
-session.commit("finishing work")
-```
-
-### Objects
-
-```python
-with repo.session() as session:
-    # Upload
-    session.objects.put("data/file.csv", b"content")
-
-    # Download (streaming)
-    with session.objects.get("data/file.csv") as f:
-        data = f.read()
-
-    # Read a specific byte range (e.g., first 1 KB)
-    with session.objects.get("data/file.parquet", byte_range=(0, 1023)) as f:
-        header = f.read()
-
-    # Stream large objects without caching
-    with session.objects.get("data/large.bin", cache=False) as f:
-        for chunk in f.iter_bytes(chunk_size=8192):
-            process(chunk)
-
-    # List (auto-paginating, with directory grouping)
-    for entry in session.objects.list(prefix="data/", delimiter="/"):
-        print(entry.path, entry.type)  # type is "object" or "prefix"
-
-    # Check metadata
-    meta = session.objects.head("data/file.csv")
-    print(meta.etag, meta.content_type, meta.content_length)
-
-    # Delete
-    session.objects.delete("data/file.csv")
-
-    session.commit("object operations")
-```
-
-### Uncommitted Changes
-
-```python
-session = repo.session()
-session.objects.put("data/new.csv", b"content")
-
-for entry in session.uncommitted():
-    print(entry.path)
 ```
 
 ### Timeline (Commit History)
@@ -294,6 +254,83 @@ job_id = repo.imports.start(
 )
 status = repo.imports.status(job_id)
 print(status.status, status.objects_imported)
+```
+
+## Advanced Usage
+
+### Sessions
+
+Sessions provide direct transactional access to objects in a repository. They
+act like transactions: stage changes, then commit or rollback.
+
+```python
+# Context manager (recommended) — rolls back on error
+with repo.session() as session:
+    objects = session.objects.list(prefix="data/", delimiter="/")
+    session.objects.put("data/report.csv", b"content")
+    session.commit("update CSV files")
+
+# Explicit control
+session = repo.session()
+print(session.session_id)
+session.objects.put("data/file.csv", b"content")
+session.commit("modifying data in parallel")
+# or: session.rollback()
+```
+
+### Attaching to an Existing Session
+
+Resume a session from another thread, process, or machine:
+
+```python
+# In another thread/process/machine:
+session = repo.attach(session_id)
+session.objects.put("data/file2.csv", b"more content")
+session.commit("finishing work")
+```
+
+### Objects
+
+```python
+with repo.session() as session:
+    # Upload
+    session.objects.put("data/file.csv", b"content")
+
+    # Download (streaming)
+    with session.objects.get("data/file.csv") as f:
+        data = f.read()
+
+    # Read a specific byte range (e.g., first 1 KB)
+    with session.objects.get("data/file.parquet", byte_range=(0, 1023)) as f:
+        header = f.read()
+
+    # Stream large objects without caching
+    with session.objects.get("data/large.bin", cache=False) as f:
+        for chunk in f.iter_bytes(chunk_size=8192):
+            process(chunk)
+
+    # List (auto-paginating, with directory grouping)
+    for entry in session.objects.list(prefix="data/", delimiter="/"):
+        print(entry.path, entry.type)  # type is "object" or "prefix"
+
+    # Check metadata
+    meta = session.objects.head("data/file.csv")
+    print(meta.etag, meta.content_type, meta.content_length)
+
+    # Delete
+    session.objects.delete("data/file.csv")
+
+    session.commit("object operations")
+```
+
+### Uncommitted Changes
+
+```python
+session = repo.session()
+session.objects.put("data/new.csv", b"content")
+
+for entry in session.uncommitted():
+    print(entry.path)
 ```
 
 ## Error Handling

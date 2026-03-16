@@ -3082,6 +3082,35 @@ paths:
         '410':
           description: Logs have been evicted
 
+  /organizations/{organization}/repositories/{repository}/sandboxes/{sandbox_id}/terminal:
+    get:
+      tags: [Sandboxes]
+      summary: Connect to interactive sandbox terminal
+      description: >
+        WebSocket endpoint for bidirectional terminal I/O with an interactive sandbox.
+        Upgrades to a WebSocket connection using binary frames. Only available for
+        sandboxes created with `interactive: true` that are in a non-terminal state.
+
+        Binary frame protocol (first byte is frame type):
+        - `0x00` (client→server): stdin data
+        - `0x01` (server→client): stdout/stderr data (TTY-merged)
+        - `0x02` (client→server): JSON resize `{"cols":N,"rows":N}`
+        - `0x03` (server→client): JSON exit `{"exited":true,"exit_code":N}`
+      operationId: getSandboxTerminal
+      parameters:
+        - $ref: '#/components/parameters/Organization'
+        - $ref: '#/components/parameters/Repository'
+        - $ref: '#/components/parameters/SandboxID'
+      responses:
+        '200':
+          description: WebSocket upgrade successful (101 Switching Protocols)
+        '400':
+          description: Sandbox is not interactive
+        '409':
+          description: Terminal session unavailable (e.g., after crash recovery)
+        '410':
+          description: Sandbox has already finished
+
   # --- Sandbox Triggers ---
   /organizations/{organization}/repositories/{repository}/sandbox-triggers:
     post:
@@ -4607,7 +4636,7 @@ components:
           description: Environment variables for the container
         run_as:
           type: object
-          description: Run the sandbox as a different principal (agent or role)
+          description: Run the sandbox as a different principal (agent or role). Not allowed with interactive mode.
           properties:
             type:
               type: string
@@ -4618,6 +4647,13 @@ components:
               format: uuid
               description: UUID of the agent or role
           required: [type, id]
+        interactive:
+          type: boolean
+          default: false
+          description: >
+            Enable interactive terminal mode. When true, the sandbox allocates a TTY and
+            exposes a WebSocket endpoint for bidirectional terminal I/O. The command defaults
+            to /bin/sh if not specified. Cannot be used with run_as.
 
     Sandbox:
       type: object
@@ -4641,6 +4677,9 @@ components:
         timeout_seconds:
           type: integer
           nullable: true
+        interactive:
+          type: boolean
+          description: Whether the sandbox is an interactive terminal session
         env_vars:
           type: object
           additionalProperties:

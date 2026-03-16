@@ -42,10 +42,15 @@ class Client:
         *,
         endpoint_url: str | None = None,
         api_key: str | None = None,
+        default_sandbox_image: str | None = None,
         extra_user_agent: str | None = None,
         httpx_client: httpx.Client | None = None,
     ) -> None:
-        self._config = resolve_config(endpoint_url=endpoint_url, api_key=api_key)
+        self._config = resolve_config(
+            endpoint_url=endpoint_url,
+            api_key=api_key,
+            default_sandbox_image=default_sandbox_image,
+        )
         self._multipart_unsupported = False
         if httpx_client is not None:
             self._http = httpx_client
@@ -59,6 +64,16 @@ class Client:
                 headers={"User-Agent": ua},
             )
             self._owns_http = True
+
+    @property
+    def _ws_base_url(self) -> str:
+        """WebSocket base URL (``https`` → ``wss``, ``http`` → ``ws``)."""
+        url = self._config.base_url
+        if url.startswith("https://"):
+            return "wss://" + url[len("https://") :]
+        if url.startswith("http://"):
+            return "ws://" + url[len("http://") :]
+        return url
 
     # -- HTTP helpers --------------------------------------------------------
 

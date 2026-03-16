@@ -4,8 +4,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+from tilde._output_stream import OutputStream
 from tilde._pagination import DEFAULT_PAGE_SIZE, PageResult, PaginatedIterator
-from tilde.models import CommitData, RepositoryData, SecretEntry, _parse_dt
+from tilde.models import CommitData, RepositoryData, RunResult, SecretEntry, _parse_dt
 
 if TYPE_CHECKING:
     from datetime import datetime
@@ -17,6 +18,7 @@ if TYPE_CHECKING:
     from tilde.resources.sandboxes import SandboxResource
     from tilde.resources.secrets import SecretManager
     from tilde.resources.sessions import Session
+    from tilde.resources.shell import Shell
 
 
 class OrgRepositoryCollection:
@@ -272,6 +274,146 @@ class Repository:
         from tilde.resources.sandboxes import list_sandboxes
 
         return list_sandboxes(self._client, self._org, self._name, after=after)
+
+    # -- Interactive shell & execute ------------------------------------------
+
+    def shell(
+        self,
+        *,
+        image: str | None = None,
+        env: dict[str, str] | None = None,
+        cmd: list[str] | None = None,
+        timeout: int | None = None,
+        name: str | None = None,
+        mountpoint: str | None = None,
+        path_prefix: str | None = None,
+    ) -> Shell:
+        """Create an interactive sandbox shell.
+
+        Returns a context manager that connects a WebSocket terminal::
+
+            with repo.shell(image="python:3.12") as sh:
+                result = sh.run("echo hello")
+                print(result.stdout)
+
+        Args:
+            image: Docker image (default: configured ``default_sandbox_image``).
+            env: Environment variables for the container.
+            cmd: Entrypoint command override.
+            timeout: Maximum execution time in seconds.
+            name: Optional sandbox name.
+            mountpoint: Mount path inside the container.
+            path_prefix: Repository path prefix to mount.
+        """
+        from tilde.resources.sandboxes import create_sandbox
+        from tilde.resources.shell import Shell
+
+        resolved_image = image or self._client._config.default_sandbox_image
+        sandbox = create_sandbox(
+            self._client,
+            self._org,
+            self._name,
+            image=resolved_image,
+            command=cmd,
+            env=env,
+            mountpoint=mountpoint,
+            path_prefix=path_prefix,
+            timeout_seconds=timeout,
+            interactive=True,
+        )
+        return Shell(self._client, sandbox)
+
+    def execute(
+        self,
+        command: str | list[str],
+        *,
+        image: str | None = None,
+        env: dict[str, str] | None = None,
+        timeout: int | None = None,
+        check: bool = True,
+        mountpoint: str | None = None,
+        path_prefix: str | None = None,
+    ) -> RunResult:
+        """Run a single command in a sandbox and return the result.
+
+        This is a convenience wrapper that creates a non-interactive sandbox,
+        waits for it to finish, and reads its output::
+
+            result = repo.execute("python train.py")
+            print(result.stdout)
+
+        Args:
+            command: Shell command string or list of args.
+            image: Docker image (default: configured ``default_sandbox_image``).
+            env: Environment variables for the container.
+            timeout: Maximum execution time in seconds.
+            check: If ``True`` (default), raise
+                :class:`~tilde.exceptions.CommandError` on non-zero exit.
+            mountpoint: Mount path inside the container.
+            path_prefix: Repository path prefix to mount.
+        """
+        import time
+
+        from tilde.exceptions import CommandError, SandboxError
+        from tilde.models import RunResult
+        from tilde.resources.sandboxes import create_sandbox
+
+        resolved_image = image or self._client._config.default_sandbox_image
+        cmd_list = ["sh", "-c", command] if isinstance(command, str) else command
+
+        sandbox = create_sandbox(
+            self._client,
+            self._org,
+            self._name,
+            image=resolved_image,
+            command=cmd_list,
+            env=env,
+            mountpoint=mountpoint,
+            path_prefix=path_prefix,
+            timeout_seconds=timeout,
+        )
+
+        # Poll until terminal state
+        poll_timeout = 300.0
+        deadline = time.monotonic() + poll_timeout
+        while time.monotonic() < deadline:
+            status = sandbox.status()
+            if status.state in ("committed", "failed", "cancelled", "error", "awaiting_approval"):
+                break
+            time.sleep(1.0)
+        else:
+            raise SandboxError(f"Sandbox {sandbox.id} did not finish within {poll_timeout}s")
+
+        # Read stdout and stderr
+        stdout_bytes = b""
+        stderr_bytes = b""
+        try:
+            with self._client._stream("GET", f"{sandbox._base_path}/stdout") as resp:
+                stdout_bytes = resp.read()
+        except Exception:
+            pass
+        try:
+            with self._client._stream("GET", f"{sandbox._base_path}/stderr") as resp:
+                stderr_bytes = resp.read()
+        except Exception:
+            pass
+
+        exit_code = status.exit_code if status.exit_code is not None else -1
+        result = RunResult(
+            stdout=OutputStream(stdout_bytes),
+            exit_code=exit_code,
+            stderr=OutputStream(stderr_bytes),
+        )
+
+        if check and exit_code != 0:
+            cmd_str = command if isinstance(command, str) else " ".join(command)
+            raise CommandError(
+                f"Command {cmd_str!r} exited with code {exit_code}",
+                result=result,
+                command=cmd_str,
+            )
+
+        return result
 
     # -- Sandbox Triggers ------------------------------------------------------
 

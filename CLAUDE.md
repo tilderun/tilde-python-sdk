@@ -14,6 +14,7 @@ src/tilde/              # Package source
   _version.py           # Single source of truth for version string
   _pagination.py        # Offset-based PaginatedIterator (generic, TypeVar-based)
   _object_reader.py     # Streaming file-like reader with optional caching
+  _output_stream.py     # OutputStream for sandbox command stdout/stderr
   resources/            # Resource classes for each API domain
     repositories.py     # Repository resource
     sessions.py         # Session resource (transactional put/get/delete + commit/rollback)
@@ -45,6 +46,7 @@ openapi.yaml            # OpenAPI spec for the Tilde API
 - **Sessions**: Transactional model — `repo.session()` returns a context manager that auto-rolls back on exception. Supports `commit(message)` and `rollback()`.
 - **Pagination**: Generic `PaginatedIterator[T]` using offset-based `after` cursor, default page size 100.
 - **Models**: Frozen `@dataclass(slots=True)` with `from_dict()` classmethods. ISO 8601 datetime parsing via `_parse_dt()`. All dataclass models must use the `@_compact_repr` decorator (defined in `models.py`) so that `repr()` omits default-valued fields. New resource classes (non-dataclass) must define a `__repr__` that shows key identifying info (e.g. `Repository('org/name')`, `Session(id='...')`).
+- **OutputStream** (`_output_stream.py`): Stream wrapper for sandbox command stdout/stderr. `RunResult.stdout` and `RunResult.stderr` are `OutputStream` instances. Methods: `read()` → bytes, `text(encoding)` → str, `iter_bytes(chunk_size)`, `iter_text(chunk_size)`, `iter_lines()`. Supports lazy loading from HTTP endpoints (data fetched and cached on first access) or in-memory construction from bytes.
 - **Errors**: `TildeError` base → `APIError` (HTTP 400+) → status-specific subclasses (401, 403, 404, 409, 410, 412, 423, 5xx). Also `ConfigurationError`, `TransportError`, `SerializationError`.
 - **MCP server** (`src/tilde/mcp/`): Built on `fastmcp`. Exposes SDK operations as MCP tools for AI agents. Key details:
   - Requires agent keys (`cak-` prefix) — validated on every tool call via `TILDE_API_KEY` env var.

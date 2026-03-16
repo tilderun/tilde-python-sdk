@@ -144,9 +144,12 @@ def create_sandbox(
     path_prefix: str | None = None,
     timeout_seconds: int | None = None,
     run_as: dict[str, str] | None = None,
+    interactive: bool = False,
 ) -> SandboxResource:
     """Create and run a sandbox (called by Repository.sandbox)."""
     body: dict[str, Any] = {"image": image}
+    if interactive:
+        body["interactive"] = True
     if command is not None:
         body["command"] = command
     if env is not None:

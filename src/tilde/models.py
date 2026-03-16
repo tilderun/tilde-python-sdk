@@ -11,6 +11,8 @@ from dataclasses import MISSING, dataclass, field, fields
 from datetime import datetime
 from typing import Any, TypeVar
 
+from tilde._output_stream import OutputStream
+
 _T = TypeVar("_T")
 
 
@@ -896,6 +898,16 @@ class SandboxTriggerData:
             created_at=_parse_dt(d.get("created_at")),
             updated_at=_parse_dt(d.get("updated_at")),
         )
+
+
+@_compact_repr
+@dataclass(slots=True)
+class RunResult:
+    """Result of a command execution in a sandbox."""
+
+    stdout: OutputStream
+    exit_code: int
+    stderr: OutputStream = field(default_factory=lambda: OutputStream(b""))
 
 
 @_compact_repr
