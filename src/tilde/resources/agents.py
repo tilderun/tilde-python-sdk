@@ -141,6 +141,18 @@ class AgentResource:
         return self._data.metadata
 
     @property
+    def inline_policy(self) -> str:
+        return self._data.inline_policy
+
+    @property
+    def inline_policy_updated_at(self) -> datetime | None:
+        return self._data.inline_policy_updated_at
+
+    @property
+    def created_by_name(self) -> str:
+        return self._data.created_by_name
+
+    @property
     def created_at(self) -> datetime | None:
         return self._data.created_at
 
@@ -225,6 +237,7 @@ class AgentCollection:
         *,
         description: str | None = None,
         metadata: dict[str, str] | None = None,
+        inline_policy: str | None = None,
     ) -> AgentResource:
         """Update an agent."""
         body: dict[str, Any] = {}
@@ -232,6 +245,8 @@ class AgentCollection:
             body["description"] = description
         if metadata is not None:
             body["metadata"] = metadata
+        if inline_policy is not None:
+            body["inline_policy"] = inline_policy
         data = self._client._put_json(f"{self._base_path}/{name}", json=body)
         return AgentResource(self._client, self._org, Agent.from_dict(data))
 

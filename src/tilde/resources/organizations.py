@@ -28,11 +28,11 @@ class MemberCollection:
         data = self._client._get_json(f"/organizations/{self._org}/members")
         return [Membership.from_dict(d) for d in data.get("results", [])]
 
-    def add(self, user_id: str, role: str = "member") -> None:
+    def add(self, username: str) -> None:
         """Add a member to the organization."""
         self._client._post(
             f"/organizations/{self._org}/members",
-            json={"user_id": user_id, "role": role},
+            json={"username": username},
         )
 
     def remove(self, user_id: str) -> None:

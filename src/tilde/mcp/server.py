@@ -238,7 +238,7 @@ def list_objects(
     - ``source_metadata``: import origin info (dict or null) with fields
       ``connector_id``, ``connector_type``, ``source_path``,
       ``version_id``, ``source_etag``, ``import_time``,
-      ``import_job_id``, ``reproducible``.
+      ``import_job_id``.
 
     To get the size of a specific object, either use this listing
     (check the ``size`` field) or call ``head_object`` for a single path.
@@ -277,7 +277,6 @@ def list_objects(
                     "source_etag": sm.source_etag,
                     "import_time": sm.import_time.isoformat() if sm.import_time else None,
                     "import_job_id": sm.import_job_id,
-                    "reproducible": sm.reproducible,
                 }
             else:
                 item["source_metadata"] = None

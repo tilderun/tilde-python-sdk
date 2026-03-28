@@ -22,16 +22,20 @@ class TestConnectorCollection:
                     "id": "conn-1",
                     "name": "my-s3",
                     "type": "s3",
+                    "source_uri": "s3://my-bucket/prefix/",
                     "disabled": False,
                     "created_at": "2025-06-01T10:00:00Z",
                 },
             )
         )
-        result = connectors.create("my-s3", "s3", {"bucket": "my-bucket", "region": "us-east-1"})
+        result = connectors.create(
+            "my-s3", "s3", "s3://my-bucket/prefix/", {"bucket": "my-bucket", "region": "us-east-1"}
+        )
         assert isinstance(result, ConnectorInfo)
         assert result.id == "conn-1"
         assert result.name == "my-s3"
         assert result.type == "s3"
+        assert result.source_uri == "s3://my-bucket/prefix/"
         assert route.called
 
     def test_list(self, mock_api, connectors):

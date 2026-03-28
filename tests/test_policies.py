@@ -28,7 +28,7 @@ class TestPolicyCollection:
                     "organization_id": "org-1",
                     "name": "deny-deletes",
                     "description": "Deny all deletes",
-                    "rego": "package tilde\ndefault allow = false",
+                    "policy_text": "package tilde\ndefault allow = false",
                     "is_builtin": False,
                     "created_by": "user-1",
                     "created_at": "2025-04-01T10:00:00Z",
@@ -82,7 +82,7 @@ class TestPolicyCollection:
                         "organization_id": "org-1",
                         "name": "deny-deletes",
                         "description": "Deny all deletes",
-                        "rego": "package tilde",
+                        "policy_text": "package tilde",
                         "is_builtin": False,
                         "created_by": "user-1",
                     },
@@ -115,13 +115,13 @@ class TestPolicyCollection:
                     "organization_id": "org-1",
                     "name": "updated-policy",
                     "description": "Updated",
-                    "rego": "package updated",
+                    "policy_text": "package updated",
                     "is_builtin": False,
                     "created_by": "user-1",
                 },
             )
         )
-        result = policies.update("pol-1", name="updated-policy", rego="package updated")
+        result = policies.update("pol-1", name="updated-policy", policy_text="package updated")
         assert isinstance(result, Policy)
         assert result.name == "updated-policy"
         assert route.called
@@ -192,6 +192,18 @@ class TestPolicyCollection:
         assert attachments[0].policy_id == "pol-1"
         assert attachments[0].principal_type == "group"
 
+    def test_generate(self, mock_api, policies):
+        """POST .../policies:generate."""
+        route = mock_api.post("/organizations/test-org/policies:generate").mock(
+            return_value=httpx.Response(
+                200,
+                json={"policy_text": "allow read *"},
+            )
+        )
+        result = policies.generate("allow reading everything")
+        assert result == "allow read *"
+        assert route.called
+
     def test_effective_policies(self, mock_api, policies):
         """GET .../effective-policies?user_id=..."""
         mock_api.get("/organizations/test-org/effective-policies").mock(
@@ -215,3 +227,26 @@ class TestPolicyCollection:
         assert isinstance(effective[0], EffectivePolicy)
         assert effective[0].policy_id == "pol-1"
         assert effective[0].source == "direct"
+
+    def test_effective_policies_by_principal(self, mock_api, policies):
+        """GET .../effective-policies?principal_type=agent&principal_id=..."""
+        mock_api.get("/organizations/test-org/effective-policies").mock(
+            return_value=httpx.Response(
+                200,
+                json={
+                    "results": [
+                        {
+                            "policy_id": "pol-2",
+                            "policy_name": "agent-policy",
+                            "is_builtin": False,
+                            "source": "group",
+                            "source_name": "agents",
+                        },
+                    ],
+                },
+            )
+        )
+        effective = policies.effective_policies(principal_type="agent", principal_id="agent-1")
+        assert len(effective) == 1
+        assert effective[0].policy_id == "pol-2"
+        assert effective[0].source == "group"

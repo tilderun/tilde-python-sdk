@@ -13,6 +13,11 @@ AGENT_RESPONSE = {
     "name": "my-agent",
     "description": "Test agent",
     "metadata": {"env": "prod"},
+    "inline_policy": "",
+    "inline_policy_updated_at": None,
+    "created_by_type": "user",
+    "created_by": "user-1",
+    "created_by_name": "alice",
     "created_at": "2025-08-01T12:00:00Z",
     "last_used_at": None,
 }
@@ -73,6 +78,19 @@ class TestAgentCollection:
         agent = client.organization("test-org").agents.update("my-agent", description="Updated")
         assert isinstance(agent, AgentResource)
         assert agent.description == "Updated"
+        assert route.called
+
+    def test_update_inline_policy(self, mock_api, client):
+        """PUT /organizations/test-org/agents/my-agent with inline_policy."""
+        updated = {**AGENT_RESPONSE, "inline_policy": "allow read *"}
+        route = mock_api.put("/organizations/test-org/agents/my-agent").mock(
+            return_value=httpx.Response(200, json=updated)
+        )
+        agent = client.organization("test-org").agents.update(
+            "my-agent", inline_policy="allow read *"
+        )
+        assert isinstance(agent, AgentResource)
+        assert agent.inline_policy == "allow read *"
         assert route.called
 
     def test_delete(self, mock_api, client):

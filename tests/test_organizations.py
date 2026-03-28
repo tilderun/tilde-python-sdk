@@ -75,13 +75,11 @@ class TestMemberCollection:
                         {
                             "organization_id": "org-1",
                             "user_id": "user-1",
-                            "role": "admin",
                             "username": "alice",
                         },
                         {
                             "organization_id": "org-1",
                             "user_id": "user-2",
-                            "role": "member",
                             "username": "bob",
                         },
                     ],
@@ -92,7 +90,7 @@ class TestMemberCollection:
         assert len(members) == 2
         assert all(isinstance(m, Membership) for m in members)
         assert members[0].user_id == "user-1"
-        assert members[0].role == "admin"
+        assert members[0].username == "alice"
         assert members[1].username == "bob"
 
     def test_members_add(self, mock_api, client):
@@ -100,7 +98,7 @@ class TestMemberCollection:
         route = mock_api.post("/organizations/test-org/members").mock(
             return_value=httpx.Response(201)
         )
-        client.organizations.members("test-org").add("user-3", role="member")
+        client.organizations.members("test-org").add("alice")
         assert route.called
 
     def test_members_remove(self, mock_api, client):

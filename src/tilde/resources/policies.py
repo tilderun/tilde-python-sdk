@@ -31,9 +31,9 @@ class PolicyCollection:
     def _base_path(self) -> str:
         return f"/organizations/{self._org}/policies"
 
-    def create(self, name: str, rego: str, description: str = "") -> Policy:
+    def create(self, name: str, policy_text: str, description: str = "") -> Policy:
         """Create a policy."""
-        body: dict[str, str] = {"name": name, "rego": rego}
+        body: dict[str, str] = {"name": name, "policy_text": policy_text}
         if description:
             body["description"] = description
         data = self._client._post_json(self._base_path, json=body)
@@ -72,7 +72,7 @@ class PolicyCollection:
         *,
         name: str | None = None,
         description: str | None = None,
-        rego: str | None = None,
+        policy_text: str | None = None,
     ) -> Policy:
         """Update a policy."""
         body: dict[str, str] = {}
@@ -80,8 +80,8 @@ class PolicyCollection:
             body["name"] = name
         if description is not None:
             body["description"] = description
-        if rego is not None:
-            body["rego"] = rego
+        if policy_text is not None:
+            body["policy_text"] = policy_text
         data = self._client._put_json(f"{self._base_path}/{policy_id}", json=body)
         return Policy.from_dict(data)
 
@@ -89,13 +89,24 @@ class PolicyCollection:
         """Delete a policy."""
         self._client._delete(f"{self._base_path}/{policy_id}")
 
-    def validate(self, rego: str) -> ValidationResult:
-        """Validate a Rego policy document without saving."""
+    def validate(self, policy_text: str) -> ValidationResult:
+        """Validate a policy document without saving."""
         data = self._client._post_json(
             f"{self._base_path}:validate",
-            json={"rego": rego},
+            json={"policy_text": policy_text},
         )
         return ValidationResult.from_dict(data)
+
+    def generate(self, prompt: str) -> str:
+        """Generate a policy from a natural language prompt.
+
+        Returns the generated policy source code.
+        """
+        data = self._client._post_json(
+            f"{self._base_path}:generate",
+            json={"prompt": prompt},
+        )
+        return str(data["policy_text"])
 
     def attach(self, policy_id: str, principal_type: str, principal_id: str) -> None:
         """Attach a policy to a user or group."""
@@ -116,10 +127,29 @@ class PolicyCollection:
         data = self._client._get_json(f"/organizations/{self._org}/attachments")
         return [AttachmentRecord.from_dict(d) for d in data.get("results", [])]
 
-    def effective_policies(self, user_id: str) -> builtins.list[EffectivePolicy]:
-        """Get effective policies for a user."""
+    def effective_policies(
+        self,
+        user_id: str | None = None,
+        *,
+        principal_type: str | None = None,
+        principal_id: str | None = None,
+    ) -> builtins.list[EffectivePolicy]:
+        """Get effective policies for a principal.
+
+        Args:
+            user_id: User ID (backward-compatible; prefer principal_type + principal_id).
+            principal_type: Principal type (e.g. ``"user"``, ``"agent"``).
+            principal_id: Principal ID.
+        """
+        params: dict[str, str] = {}
+        if user_id is not None:
+            params["user_id"] = user_id
+        if principal_type is not None:
+            params["principal_type"] = principal_type
+        if principal_id is not None:
+            params["principal_id"] = principal_id
         data = self._client._get_json(
             f"/organizations/{self._org}/effective-policies",
-            params={"user_id": user_id},
+            params=params,
         )
         return [EffectivePolicy.from_dict(d) for d in data.get("results", [])]

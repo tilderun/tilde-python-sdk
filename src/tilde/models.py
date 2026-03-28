@@ -67,7 +67,6 @@ class OrgSummary:
     id: str
     name: str
     display_name: str
-    role: str
 
     @classmethod
     def from_dict(cls, d: dict[str, Any]) -> OrgSummary:
@@ -75,7 +74,6 @@ class OrgSummary:
             id=d.get("id", ""),
             name=d.get("name", ""),
             display_name=d.get("display_name", ""),
-            role=d.get("role", ""),
         )
 
 
@@ -84,7 +82,6 @@ class OrgSummary:
 class Membership:
     organization_id: str
     user_id: str
-    role: str
     joined_at: datetime | None = None
     username: str | None = None
     full_name: str | None = None
@@ -95,7 +92,6 @@ class Membership:
         return cls(
             organization_id=d.get("organization_id", ""),
             user_id=d.get("user_id", ""),
-            role=d.get("role", ""),
             joined_at=_parse_dt(d.get("joined_at")),
             username=d.get("username"),
             full_name=d.get("full_name"),
@@ -210,7 +206,6 @@ class SourceMetadata:
     source_etag: str = ""
     import_time: datetime | None = None
     import_job_id: str = ""
-    reproducible: bool | None = None
 
     @classmethod
     def from_dict(cls, d: dict[str, Any]) -> SourceMetadata:
@@ -222,7 +217,6 @@ class SourceMetadata:
             source_etag=d.get("source_etag", ""),
             import_time=_parse_dt(d.get("import_time")),
             import_job_id=d.get("import_job_id", ""),
-            reproducible=d.get("reproducible"),
         )
 
 
@@ -435,7 +429,7 @@ class Policy:
     organization_id: str = ""
     name: str = ""
     description: str = ""
-    rego: str = ""
+    policy_text: str = ""
     is_builtin: bool = False
     created_by_type: str = ""
     created_by: str = ""
@@ -449,7 +443,7 @@ class Policy:
             organization_id=d.get("organization_id", ""),
             name=d.get("name", ""),
             description=d.get("description", ""),
-            rego=d.get("rego", ""),
+            policy_text=d.get("policy_text", ""),
             is_builtin=d.get("is_builtin", False),
             created_by_type=d.get("created_by_type", ""),
             created_by=d.get("created_by", ""),
@@ -587,7 +581,9 @@ class ConnectorInfo:
     id: str = ""
     name: str = ""
     type: str = ""
+    source_uri: str = ""
     disabled: bool = False
+    public_key: str | None = None
     created_at: datetime | None = None
 
     @classmethod
@@ -596,7 +592,9 @@ class ConnectorInfo:
             id=d.get("id", ""),
             name=d.get("name", ""),
             type=d.get("type", ""),
+            source_uri=d.get("source_uri", ""),
             disabled=d.get("disabled", False),
+            public_key=d.get("public_key"),
             created_at=_parse_dt(d.get("created_at")),
         )
 
@@ -690,7 +688,11 @@ class Agent:
     name: str = ""
     description: str = ""
     metadata: dict[str, str] = field(default_factory=dict)
+    inline_policy: str = ""
+    inline_policy_updated_at: datetime | None = None
     created_by_type: str = ""
+    created_by: str = ""
+    created_by_name: str = ""
     created_at: datetime | None = None
     last_used_at: datetime | None = None
 
@@ -702,7 +704,11 @@ class Agent:
             name=d.get("name", ""),
             description=d.get("description", ""),
             metadata=d.get("metadata", {}),
+            inline_policy=d.get("inline_policy", ""),
+            inline_policy_updated_at=_parse_dt(d.get("inline_policy_updated_at")),
             created_by_type=d.get("created_by_type", ""),
+            created_by=d.get("created_by", ""),
+            created_by_name=d.get("created_by_name", ""),
             created_at=_parse_dt(d.get("created_at")),
             last_used_at=_parse_dt(d.get("last_used_at")),
         )

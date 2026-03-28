@@ -250,7 +250,6 @@ class TestListObjects:
                                     "source_etag": "abc",
                                     "import_time": "2025-06-15T09:00:00+00:00",
                                     "import_job_id": "job-1",
-                                    "reproducible": True,
                                 },
                             },
                         },
@@ -290,7 +289,6 @@ class TestListObjects:
         sm = obj_item["source_metadata"]
         assert sm["connector_type"] == "s3"
         assert sm["source_path"] == "s3://bucket/file.csv"
-        assert sm["reproducible"] is True
 
     def test_object_without_source_metadata(self, mock_api: respx.MockRouter, ctx: MagicMock):
         """Objects without source_metadata should return None for that field."""

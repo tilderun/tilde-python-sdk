@@ -21,11 +21,13 @@ class ConnectorCollection:
     def _base_path(self) -> str:
         return f"/organizations/{self._org}/connectors"
 
-    def create(self, name: str, type: str, config: dict[str, Any]) -> ConnectorInfo:
+    def create(
+        self, name: str, type: str, source_uri: str, config: dict[str, Any]
+    ) -> ConnectorInfo:
         """Create a connector."""
         data = self._client._post_json(
             self._base_path,
-            json={"name": name, "type": type, "config": config},
+            json={"name": name, "type": type, "source_uri": source_uri, "config": config},
         )
         return ConnectorInfo.from_dict(data)
 
