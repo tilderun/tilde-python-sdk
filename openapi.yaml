@@ -379,8 +379,6 @@ paths:
                   pattern: '^[a-z0-9][a-z0-9_-]{1,38}$'
                 company:
                   type: string
-                invite_code:
-                  type: string
       responses:
         '201':
           description: User created successfully
@@ -391,7 +389,7 @@ paths:
         '400':
           $ref: '#/components/responses/BadRequest'
         '403':
-          description: Invalid nonce or invite code required
+          description: Invalid nonce or account pending approval
           content:
             application/json:
               schema:
@@ -3747,9 +3745,6 @@ components:
           minLength: 8
         company:
           type: string
-        invite_code:
-          type: string
-          description: Hex-encoded HMAC-SHA256 invite token (required when server is in invite-only mode)
 
     DeviceCodeResponse:
       type: object
@@ -3807,7 +3802,7 @@ components:
 
     User:
       type: object
-      required: [id, username, email, full_name, source, created_at]
+      required: [id, username, email, full_name, source, status, created_at]
       additionalProperties: false
       properties:
         id:
@@ -3823,6 +3818,10 @@ components:
           type: string
         source:
           type: string
+        status:
+          type: string
+          enum: [pending, active]
+          description: Account status. Pending accounts cannot sign in until an admin approves them.
         created_at:
           type: string
           format: date-time
@@ -4731,7 +4730,7 @@ components:
       properties:
         image:
           type: string
-          description: Docker image to run
+          description: Image ID from the server-configured allowlist (e.g. "python-312", "ubuntu")
         command:
           type: array
           items:
@@ -4915,6 +4914,7 @@ components:
       properties:
         image:
           type: string
+          description: Image ID from the server-configured allowlist (e.g. "python-312", "ubuntu")
         command:
           type: array
           items:

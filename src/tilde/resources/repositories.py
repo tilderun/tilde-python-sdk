@@ -244,7 +244,8 @@ class Repository:
         """Create and run a sandbox.
 
         Args:
-            image: Docker image to run.
+            image: Image ID from the server-configured allowlist
+                (e.g. ``"python-312"``, ``"ubuntu"``).
             command: Command to execute in the container.
             env: Environment variables for the container.
             mountpoint: Path inside the container where data is mounted
@@ -292,12 +293,13 @@ class Repository:
 
         Returns a context manager that connects a WebSocket terminal::
 
-            with repo.shell(image="python:3.12") as sh:
+            with repo.shell(image="python-312") as sh:
                 result = sh.run("echo hello")
                 print(result.stdout)
 
         Args:
-            image: Docker image (default: configured ``default_sandbox_image``).
+            image: Image ID from the server-configured allowlist
+                (default: configured ``default_sandbox_image``).
             env: Environment variables for the container.
             cmd: Entrypoint command override.
             timeout: Maximum execution time in seconds.
@@ -344,7 +346,8 @@ class Repository:
 
         Args:
             command: Shell command string or list of args.
-            image: Docker image (default: configured ``default_sandbox_image``).
+            image: Image ID from the server-configured allowlist
+                (default: configured ``default_sandbox_image``).
             env: Environment variables for the container.
             timeout: Maximum execution time in seconds.
             check: If ``True`` (default), raise

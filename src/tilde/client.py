@@ -33,7 +33,7 @@ class Client:
             May be ``None`` at construction; raises
             :class:`~tilde.exceptions.ConfigurationError` at request time.
         extra_user_agent: Additional User-Agent segments appended after the
-            SDK identifier (e.g. ``"tilde-mcp/0.1.0 claude-desktop/1.2"``).
+            SDK identifier (e.g. ``"my-app/0.1.0 claude-desktop/1.2"``).
         httpx_client: Optional pre-configured ``httpx.Client`` for testing.
     """
 

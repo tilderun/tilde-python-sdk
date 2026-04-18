@@ -24,7 +24,7 @@ TRIGGER_RESPONSE = {
         {"type": "prefix", "prefix": "data/", "diff_type": "added"},
     ],
     "sandbox_config": {
-        "image": "python:3.10",
+        "image": "python-310",
         "command": ["python", "validate.py"],
         "mountpoint": "/sandbox",
         "path_prefix": "",
@@ -52,7 +52,7 @@ class TestSandboxTriggerDataModel:
         assert data.conditions[0].diff_type == "added"
         assert data.sandbox_config is not None
         assert isinstance(data.sandbox_config, SandboxTriggerConfig)
-        assert data.sandbox_config.image == "python:3.10"
+        assert data.sandbox_config.image == "python-310"
         assert data.sandbox_config.command == ["python", "validate.py"]
         assert data.sandbox_config.timeout_seconds == 300
         assert data.sandbox_config.env_vars == {"MODE": "strict"}
@@ -78,8 +78,8 @@ class TestSandboxTriggerDataModel:
 
     def test_config_from_dict(self):
         """SandboxTriggerConfig.from_dict() parses fields."""
-        cfg = SandboxTriggerConfig.from_dict({"image": "node:18", "command": ["npm", "test"]})
-        assert cfg.image == "node:18"
+        cfg = SandboxTriggerConfig.from_dict({"image": "node-18", "command": ["npm", "test"]})
+        assert cfg.image == "node-18"
         assert cfg.command == ["npm", "test"]
         assert cfg.timeout_seconds is None
 
@@ -124,7 +124,7 @@ class TestCreateSandboxTrigger:
         trigger = repo.sandbox_trigger(
             name="validate",
             conditions=[{"type": "prefix", "prefix": "data/", "diff_type": "added"}],
-            sandbox_config={"image": "python:3.10", "command": ["python", "validate.py"]},
+            sandbox_config={"image": "python-310", "command": ["python", "validate.py"]},
             description="Run validation",
         )
         assert isinstance(trigger, SandboxTriggerResource)
@@ -135,7 +135,7 @@ class TestCreateSandboxTrigger:
         assert payload["conditions"] == [
             {"type": "prefix", "prefix": "data/", "diff_type": "added"}
         ]
-        assert payload["sandbox_config"]["image"] == "python:3.10"
+        assert payload["sandbox_config"]["image"] == "python-310"
         assert payload["description"] == "Run validation"
 
     def test_create_trigger_minimal(self, mock_api, repo):
@@ -148,7 +148,7 @@ class TestCreateSandboxTrigger:
         trigger = repo.sandbox_trigger(
             name="minimal",
             conditions=[],
-            sandbox_config={"image": "python:3.10"},
+            sandbox_config={"image": "python-310"},
         )
         assert trigger.id == "trig-2"
 
@@ -222,7 +222,7 @@ class TestSandboxTriggerGet:
         trigger = repo.sandbox_trigger(
             name="validate",
             conditions=[],
-            sandbox_config={"image": "python:3.10"},
+            sandbox_config={"image": "python-310"},
         )
         data = trigger.get()
         assert isinstance(data, SandboxTriggerData)
@@ -241,7 +241,7 @@ class TestSandboxTriggerUpdate:
         trigger = repo.sandbox_trigger(
             name="validate",
             conditions=[],
-            sandbox_config={"image": "python:3.10"},
+            sandbox_config={"image": "python-310"},
         )
         data = trigger.update(name="updated-name")
         assert isinstance(data, SandboxTriggerData)
@@ -262,7 +262,7 @@ class TestSandboxTriggerToggle:
         trigger = repo.sandbox_trigger(
             name="validate",
             conditions=[],
-            sandbox_config={"image": "python:3.10"},
+            sandbox_config={"image": "python-310"},
         )
         data = trigger.toggle(enabled=False)
         assert isinstance(data, SandboxTriggerData)
@@ -280,7 +280,7 @@ class TestSandboxTriggerDelete:
         trigger = repo.sandbox_trigger(
             name="validate",
             conditions=[],
-            sandbox_config={"image": "python:3.10"},
+            sandbox_config={"image": "python-310"},
         )
         trigger.delete()
         assert delete_route.called
@@ -316,7 +316,7 @@ class TestSandboxTriggerRuns:
         trigger = repo.sandbox_trigger(
             name="validate",
             conditions=[],
-            sandbox_config={"image": "python:3.10"},
+            sandbox_config={"image": "python-310"},
         )
         runs = list(trigger.runs())
         assert len(runs) == 1
@@ -356,7 +356,7 @@ class TestSandboxTriggerRuns:
         trigger = repo.sandbox_trigger(
             name="validate",
             conditions=[],
-            sandbox_config={"image": "python:3.10"},
+            sandbox_config={"image": "python-310"},
         )
         runs = list(trigger.runs())
         assert len(runs) == 2

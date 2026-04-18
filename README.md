@@ -26,7 +26,7 @@ import tilde
 repo = tilde.repository("my-org/my-repo")
 
 # Run commands in an interactive sandbox
-with repo.shell(image="python:3.12") as sh:
+with repo.shell(image="python-312") as sh:
     sh.run("pip install pandas")
     result = sh.run("python train.py")
     print(result.stdout.text())
@@ -49,7 +49,7 @@ with repo.shell(image="python:3.12") as sh:
 For a single command that doesn't need an interactive session:
 
 ```python
-result = repo.execute("python train.py", image="python:3.12")
+result = repo.execute("python train.py", image="python-312")
 print(result.stdout.text())
 
 # check=False to handle errors yourself
@@ -407,40 +407,6 @@ with repo.objects.get("data/file.parquet", byte_range=(0, 1023)) as f:
     print(f.content_range)   # "bytes 0-1023/49152"
     print(f.content_length)  # 1024
 ```
-
-## MCP Server
-
-The SDK includes an [MCP](https://modelcontextprotocol.io/) server that exposes
-Tilde operations as tools for AI agents. The API key must be an agent key
-(prefix `cak-`).
-
-### Running
-
-```bash
-# Via uvx
-uvx --from tilde-sdk tilde-mcp
-
-# Or as a Python module
-TILDE_API_KEY=cak-... python -m tilde.mcp
-```
-
-### Available Tools
-
-| Tool | Description |
-|------|-------------|
-| `create_session` | Create a new editing session on a repository. |
-| `list_objects` | List objects and prefixes with metadata (size, content type, etc.). |
-| `head_object` | Get an object's size and content type without downloading it. |
-| `get_object` | Download an object's content (UTF-8 text or base64-encoded binary). |
-| `put_object` | Upload an object (UTF-8 text or base64-encoded binary). |
-| `delete_object` | Delete an object from a session. |
-| `commit_session` | Commit a session (returns approval URL if review is required). |
-| `close_session` | Roll back and close a session. |
-
-### Configuration
-
-The server reads `TILDE_API_KEY` from the environment on every tool call.
-Only agent keys (`cak-` prefix) are accepted.
 
 ## Documentation
 

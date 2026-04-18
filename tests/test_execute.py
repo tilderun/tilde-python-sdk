@@ -116,7 +116,7 @@ class TestExecuteDefaultImage:
         """execute() uses configured default_sandbox_image."""
         from tilde.client import Client
 
-        c = Client(api_key="test-key", default_sandbox_image="custom:img")
+        c = Client(api_key="test-key", default_sandbox_image="custom-img")
         r = c.repository("test-org/test-repo")
 
         _setup_sandbox(mock_api, "sbx-dimg", "committed", stdout="ok\n")
@@ -127,7 +127,7 @@ class TestExecuteDefaultImage:
         r.execute("echo ok")
 
         payload = json.loads(route.calls[0].request.content)
-        assert payload["image"] == "custom:img"
+        assert payload["image"] == "custom-img"
         # Non-interactive: no 'interactive' key
         assert "interactive" not in payload
         c.close()
@@ -139,10 +139,10 @@ class TestExecuteDefaultImage:
             return_value=httpx.Response(201, json={"sandbox_id": "sbx-ovr"})
         )
 
-        repo.execute("echo ok", image="special:v2")
+        repo.execute("echo ok", image="special-v2")
 
         payload = json.loads(route.calls[0].request.content)
-        assert payload["image"] == "special:v2"
+        assert payload["image"] == "special-v2"
 
 
 class TestExecuteFailedSandbox:

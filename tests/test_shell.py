@@ -124,7 +124,7 @@ class TestShellRun:
         mock_ws_connect.return_value = mock_ws
         mock_ws.recv.side_effect = _make_ws_recv(mock_ws, "hello world")
 
-        with repo.shell(image="alpine:latest") as sh:
+        with repo.shell(image="alpine") as sh:
             result = sh.run("echo hello world")
 
         assert isinstance(result, RunResult)
@@ -163,7 +163,7 @@ class TestShellRun:
         mock_ws_connect.return_value = mock_ws
         mock_ws.recv.side_effect = _make_ws_recv(mock_ws, "ok")
 
-        with repo.shell(image="alpine:latest") as sh:
+        with repo.shell(image="alpine") as sh:
             sh.run("echo ok")
 
         # Every send call should be bytes starting with 0x00
@@ -203,7 +203,7 @@ class TestShellRun:
         mock_ws_connect.return_value = mock_ws
         mock_ws.recv.side_effect = _make_ws_recv(mock_ws, "error output", exit_code=1)
 
-        with repo.shell(image="alpine:latest") as sh:
+        with repo.shell(image="alpine") as sh:
             with pytest.raises(CommandError) as exc_info:
                 sh.run("false", check=True)
             assert exc_info.value.result.exit_code == 1
@@ -240,7 +240,7 @@ class TestShellRun:
         mock_ws_connect.return_value = mock_ws
         mock_ws.recv.side_effect = _make_ws_recv(mock_ws, exit_code=42)
 
-        with repo.shell(image="alpine:latest") as sh:
+        with repo.shell(image="alpine") as sh:
             result = sh.run("exit 42")
         assert result.exit_code == 42
 
@@ -277,7 +277,7 @@ class TestShellRun:
         colored_output = "\x1b[1;34mdir1\x1b[0m  \x1b[0;32mfile.txt\x1b[0m"
         mock_ws.recv.side_effect = _make_ws_recv(mock_ws, colored_output)
 
-        with repo.shell(image="alpine:latest") as sh:
+        with repo.shell(image="alpine") as sh:
             result = sh.run("ls --color=always")
 
         assert "\x1b" not in result.stdout.text()
@@ -309,7 +309,7 @@ class TestShellContextManager:
         mock_ws_connect.return_value = mock_ws
         mock_ws.recv.side_effect = _make_ws_recv(mock_ws)
 
-        with pytest.raises(ValueError, match="test error"), repo.shell(image="alpine:latest"):
+        with pytest.raises(ValueError, match="test error"), repo.shell(image="alpine"):
             raise ValueError("test error")
 
         assert cancel_route.called
@@ -347,7 +347,7 @@ class TestShellContextManager:
 
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
-            with repo.shell(image="alpine:latest"):
+            with repo.shell(image="alpine"):
                 pass
             assert len(w) == 1
             assert "awaiting_approval" not in str(w[0].message)  # URL is in the message
@@ -369,7 +369,7 @@ class TestShellContextManager:
             )
         )
 
-        with pytest.raises(SandboxError, match="terminal state"), repo.shell(image="alpine:latest"):
+        with pytest.raises(SandboxError, match="terminal state"), repo.shell(image="alpine"):
             pass
 
 
@@ -379,7 +379,7 @@ class TestShellDefaultImage:
         """shell() uses the configured default_sandbox_image."""
         from tilde.client import Client
 
-        c = Client(api_key="test-key", default_sandbox_image="myimage:v1")
+        c = Client(api_key="test-key", default_sandbox_image="myimage")
         r = c.repository("test-org/test-repo")
 
         route = mock_api.post(BASE_PATH).mock(
@@ -418,6 +418,6 @@ class TestShellDefaultImage:
         import json
 
         payload = json.loads(route.calls[0].request.content)
-        assert payload["image"] == "myimage:v1"
+        assert payload["image"] == "myimage"
         assert payload["interactive"] is True
         c.close()

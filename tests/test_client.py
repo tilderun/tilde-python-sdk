@@ -62,10 +62,10 @@ class TestUserAgentHeader:
 
     def test_extra_user_agent_appended(self, mock_api):
         mock_api.get("/healthcheck").mock(return_value=Response(200, json={"ok": True}))
-        c = Client(api_key="test-key", extra_user_agent="tilde-mcp/0.3.0 claude-desktop/1.2.3")
+        c = Client(api_key="test-key", extra_user_agent="my-app/0.3.0 claude-desktop/1.2.3")
         c._get_json("/healthcheck")
         ua = mock_api.calls.last.request.headers.get("user-agent", "")
-        assert ua == f"tilde-python-sdk/{__version__} tilde-mcp/0.3.0 claude-desktop/1.2.3"
+        assert ua == f"tilde-python-sdk/{__version__} my-app/0.3.0 claude-desktop/1.2.3"
 
 
 # ---------------------------------------------------------------------------

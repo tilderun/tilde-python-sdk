@@ -6,7 +6,7 @@ import os
 from dataclasses import dataclass
 
 DEFAULT_ENDPOINT_URL = "https://tilde.run"
-DEFAULT_SANDBOX_IMAGE = "busybox:latest"
+DEFAULT_SANDBOX_IMAGE = "ubuntu"
 
 _ENV_API_KEY = "TILDE_API_KEY"  # pragma: allowlist secret
 _ENV_ENDPOINT_URL = "TILDE_ENDPOINT_URL"

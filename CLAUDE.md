@@ -25,11 +25,6 @@ src/tilde/              # Package source
     policies.py         # Rego policy validation and attachment
     connectors.py       # S3 and other connectors
     imports.py          # Import job queuing and status
-  mcp/                  # MCP server for AI agents
-    __init__.py         # Exports mcp (FastMCP instance) and main()
-    __main__.py         # python -m tilde.mcp entry point
-    server.py           # Tool definitions, key validation, session caching, error mapping
-
 tests/                  # pytest + respx (HTTP mocking)
   conftest.py           # Fixtures: mock_api, client, repo
   test_*.py             # One test file per module
@@ -48,14 +43,6 @@ openapi.yaml            # OpenAPI spec for the Tilde API
 - **Models**: Frozen `@dataclass(slots=True)` with `from_dict()` classmethods. ISO 8601 datetime parsing via `_parse_dt()`. All dataclass models must use the `@_compact_repr` decorator (defined in `models.py`) so that `repr()` omits default-valued fields. New resource classes (non-dataclass) must define a `__repr__` that shows key identifying info (e.g. `Repository('org/name')`, `Session(id='...')`).
 - **OutputStream** (`_output_stream.py`): Stream wrapper for sandbox command stdout/stderr. `RunResult.stdout` and `RunResult.stderr` are `OutputStream` instances. Methods: `read()` → bytes, `text(encoding)` → str, `iter_bytes(chunk_size)`, `iter_text(chunk_size)`, `iter_lines()`. Supports lazy loading from HTTP endpoints (data fetched and cached on first access) or in-memory construction from bytes.
 - **Errors**: `TildeError` base → `APIError` (HTTP 400+) → status-specific subclasses (401, 403, 404, 409, 410, 412, 423, 5xx). Also `ConfigurationError`, `TransportError`, `SerializationError`.
-- **MCP server** (`src/tilde/mcp/`): Built on `fastmcp`. Exposes SDK operations as MCP tools for AI agents. Key details:
-  - Requires agent keys (`cak-` prefix) — validated on every tool call via `TILDE_API_KEY` env var.
-  - Thread-safe client and session caching (module-level `_lock`, `_client`, `_sessions`). Key rotation recreates the client and clears cached sessions.
-  - `_handle_errors` decorator maps SDK exceptions → `ToolError` with clean messages.
-  - `Session.commit_result()` returns a `CommitResult` dataclass (non-blocking, no warnings) used by the `commit_session` tool.
-  - Tools: `create_session`, `list_objects`, `head_object`, `get_object`, `put_object`, `delete_object`, `commit_session`, `close_session`.
-  - Entry point: `tilde-mcp` console script (`uvx --from tilde-sdk tilde-mcp`) or `python -m tilde.mcp`.
-
 ## Commands
 
 ### Install dependencies

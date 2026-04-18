@@ -20,10 +20,7 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
     "Typing :: Typed",
 ]
-dependencies = ["httpx>=0.25.0,<1.0", "fastmcp>=2.0", "websockets>=12.0,<15.0", "click>=7.0"]
-
-[project.scripts]
-tilde-mcp = "tilde.mcp:main"
+dependencies = ["httpx>=0.25.0,<1.0", "websockets>=12.0,<15.0", "click>=7.0"]
 
 [project.urls]
 Homepage = "https://github.com/tilderun/tilde-python-sdk"
