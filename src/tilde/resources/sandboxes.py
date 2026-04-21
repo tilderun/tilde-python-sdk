@@ -113,11 +113,20 @@ class Sandbox:
         return SandboxStatus(self._client, self._base_path, data)
 
     def cancel(self) -> None:
+        """Roll back the sandbox; any session-level changes are discarded."""
         self._client._delete(self._base_path)
 
     def delete(self) -> None:
         """Alias for :meth:`cancel`."""
         self.cancel()
+
+    def finish(self) -> None:
+        """Gracefully finish a service-mode sandbox (commit path).
+
+        Returns immediately after the shutdown is dispatched; callers poll
+        :meth:`status` to observe the final ``committed`` state.
+        """
+        self._client._post(f"{self._base_path}/finish")
 
 
 class Sandboxes:
@@ -208,12 +217,17 @@ def _create_sandbox(
     path_prefix: str | None = None,
     timeout_seconds: int | None = None,
     run_as: dict[str, str] | None = None,
-    interactive: bool = False,
+    mode: str | None = None,
 ) -> Sandbox:
-    """Internal helper shared by ``Sandboxes.create`` and ``Repository.execute``."""
+    """Internal helper shared by ``Sandboxes.create`` and ``Repository.execute``.
+
+    ``mode`` is one of ``"one-shot"``, ``"interactive"``, or ``"service"``
+    (see the ``CreateSandboxRequest`` schema).  ``None`` falls back to the
+    server default (``"one-shot"``).
+    """
     body: dict[str, Any] = {"image": image}
-    if interactive:
-        body["interactive"] = True
+    if mode is not None:
+        body["mode"] = mode
     if command is not None:
         body["command"] = command
     if env is not None:

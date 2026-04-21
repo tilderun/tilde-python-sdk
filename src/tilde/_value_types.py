@@ -365,9 +365,11 @@ class SandboxTriggerConfig:
 class RunResult:
     """Result of a command execution in a sandbox.
 
-    ``stdout`` is the merged stdout and stderr produced by the command,
-    interleaved in the order the sandbox wrote them.
+    ``stdout`` and ``stderr`` are delivered on independent channels by the
+    sandbox ``/exec`` protocol.  Callers that want the merged byte stream
+    concatenate explicitly.
     """
 
     stdout: OutputStream
+    stderr: OutputStream
     exit_code: int

@@ -216,36 +216,38 @@ class Repository:
         *,
         image: str | None = None,
         env: dict[str, str] | None = None,
-        cmd: list[str] | None = None,
         timeout: int | None = None,
-        name: str | None = None,
         mountpoint: str | None = None,
         path_prefix: str | None = None,
     ) -> Shell:
-        """Create an interactive sandbox shell.
+        """Open a sandbox whose lifecycle is driven by exec calls.
 
-        Returns a context manager that connects a WebSocket terminal::
+        Returns a context manager. Each ``sh.run()`` call spawns an
+        independent child process over the ``/exec`` WebSocket; the
+        sandbox has no anchor shell and no ``/terminal`` channel. ``env``
+        here sets the *container* environment inherited by every exec;
+        per-call overrides go through ``run(env=...)``.
+
+        Example::
 
             with repo.shell(image="python:3.12") as sh:
                 result = sh.run("echo hello")
-                print(result.stdout)
+                print(result.stdout.text())
         """
         from tilde.resources.sandboxes import _create_sandbox
         from tilde.resources.shell import Shell
 
-        _ = name  # reserved for future use
         resolved_image = image or self._client._config.default_sandbox_image
         sandbox = _create_sandbox(
             self._client,
             self._org,
             self.name,
             image=resolved_image,
-            command=cmd,
             env=env,
             mountpoint=mountpoint,
             path_prefix=path_prefix,
             timeout_seconds=timeout,
-            interactive=True,
+            mode="service",
         )
         return Shell(self._client, sandbox)
 
@@ -300,8 +302,12 @@ class Repository:
             pass
 
         exit_code = status.exit_code if status is not None and status.exit_code is not None else -1
+        # execute() runs a one-shot sandbox whose server-side log is a single
+        # merged stdout+stderr stream; stderr is surfaced as empty so callers
+        # can still read it uniformly via RunResult.stderr.
         result = RunResult(
             stdout=OutputStream(stdout_bytes),
+            stderr=OutputStream(b""),
             exit_code=exit_code,
         )
 
