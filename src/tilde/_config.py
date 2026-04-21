@@ -10,7 +10,7 @@ from typing import Any
 import yaml
 
 DEFAULT_ENDPOINT_URL = "https://tilde.run"
-DEFAULT_SANDBOX_IMAGE = "busybox"
+DEFAULT_SANDBOX_IMAGE = "ubuntu:22.04"
 
 _ENV_API_KEY = "TILDE_API_KEY"  # pragma: allowlist secret
 _ENV_ENDPOINT_URL = "TILDE_ENDPOINT_URL"

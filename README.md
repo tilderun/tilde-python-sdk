@@ -26,7 +26,7 @@ import tilde
 repo = tilde.repository("my-org/my-repo")
 
 # Run commands in an interactive sandbox
-with repo.shell(image="python-312") as sh:
+with repo.shell(image="python:3.12") as sh:
     sh.run("pip install pandas")
     result = sh.run("python train.py")
     print(result.stdout.text())
@@ -49,7 +49,7 @@ with repo.shell(image="python-312") as sh:
 For a single command that doesn't need an interactive session:
 
 ```python
-result = repo.execute("python train.py", image="python-312")
+result = repo.execute("python train.py", image="python:3.12")
 print(result.stdout.text())
 
 # check=False to handle errors yourself

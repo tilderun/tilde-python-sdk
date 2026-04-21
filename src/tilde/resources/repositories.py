@@ -226,7 +226,7 @@ class Repository:
 
         Returns a context manager that connects a WebSocket terminal::
 
-            with repo.shell(image="python-312") as sh:
+            with repo.shell(image="python:3.12") as sh:
                 result = sh.run("echo hello")
                 print(result.stdout)
         """
