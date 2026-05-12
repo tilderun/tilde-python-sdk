@@ -202,7 +202,9 @@ class TestSessionObjects:
             )
         )
         # Part presigned URL (JSON response)
-        mock_api.get("/organizations/test-org/repositories/test-repo/object/multipart/part").mock(
+        part_url_route = mock_api.get(
+            "/organizations/test-org/repositories/test-repo/object/multipart/part"
+        ).mock(
             return_value=httpx.Response(
                 200,
                 json={"upload_url": "https://s3.example.com/bucket/mp-obj?partNumber=1"},
@@ -231,6 +233,10 @@ class TestSessionObjects:
         assert initiate_route.called
         assert part_upload_route.called
         assert complete_route.called
+        # upload_token from initiate must be forwarded to the per-part URL request
+        part_url_query = part_url_route.calls[0].request.url.params
+        assert part_url_query["upload_token"] == "mp-token-1"
+        assert part_url_query["upload_id"] == "mp-upload-1"
 
     def test_put_multipart_501_fallback(self, mock_api, repo):
         """Server returns 501 for multipart → falls back to single upload."""
@@ -306,6 +312,9 @@ class TestSessionObjects:
         except Exception:
             pass
         assert abort_route.called
+        abort_query = abort_route.calls[0].request.url.params
+        assert abort_query["upload_token"] == "mp-token-fail"
+        assert abort_query["upload_id"] == "mp-upload-fail"
 
     def test_copy(self, mock_api, repo):
         """POST .../object/copy?session_id=...&source_path=...&destination_path=..."""

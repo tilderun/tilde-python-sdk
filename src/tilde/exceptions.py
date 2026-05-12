@@ -87,9 +87,14 @@ class APIError(TildeError):
         self.method = method
         self.url = url
         self.response_text = response_text[:500]
-        super().__init__(
-            f"{method} {url} -> {status_code}: {message}" if method else f"{status_code}: {message}"
-        )
+        prefix = f"{method} {url} -> " if method else ""
+        details: list[str] = []
+        if code:
+            details.append(f"code={code}")
+        if request_id:
+            details.append(f"request_id={request_id}")
+        suffix = f" [{' '.join(details)}]" if details else ""
+        super().__init__(f"{prefix}{status_code}: {message}{suffix}")
 
 
 class BadRequestError(APIError):

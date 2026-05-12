@@ -81,6 +81,7 @@ class Client:
             self._http = httpx.Client(
                 base_url=self._config.base_url,
                 headers={"User-Agent": ua},
+                timeout=httpx.Timeout(30.0),
             )
             self._owns_http = True
 

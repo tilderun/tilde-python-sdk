@@ -95,6 +95,24 @@ class TestAPIError:
         assert "404" in text
         assert "not found" in text
 
+    def test_str_includes_request_id_and_code_when_present(self):
+        err = self._make_error(
+            status_code=500,
+            message="failed to initiate upload",
+            code="internal_error",
+            request_id="req-abc-123",
+        )
+        text = str(err)
+        assert "request_id=req-abc-123" in text
+        assert "code=internal_error" in text
+
+    def test_str_omits_details_when_request_id_and_code_empty(self):
+        err = self._make_error(code="", request_id="")
+        text = str(err)
+        assert "request_id=" not in text
+        assert "code=" not in text
+        assert "[" not in text
+
 
 # ---------------------------------------------------------------------------
 # APIError subclasses & default status codes

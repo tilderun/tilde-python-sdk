@@ -22,6 +22,11 @@ if TYPE_CHECKING:
 SINGLE_UPLOAD_LIMIT = 64 * 1024 * 1024  # 64 MB
 MULTIPART_PART_SIZE = 64 * 1024 * 1024  # 64 MB
 
+# Presigned-URL PUTs send arbitrarily large bodies; the per-request write
+# timeout has to be disabled so a slow link doesn't kill the upload mid-stream.
+# Connect/read are still bounded so a stuck endpoint can't hang forever.
+_UPLOAD_TIMEOUT = httpx.Timeout(connect=30.0, read=120.0, write=None, pool=30.0)
+
 
 def _get_data_size(data: bytes | bytearray | memoryview | BinaryIO | Iterable[bytes]) -> int | None:
     """Return the size of *data* in bytes, or ``None`` if unknown."""
@@ -340,6 +345,7 @@ class SessionObjects:
                 upload_url,
                 content=content,
                 headers={"Content-Type": "application/octet-stream"},
+                timeout=_UPLOAD_TIMEOUT,
             )
         except httpx.TransportError as exc:
             raise TransportError(f"Upload to presigned URL failed: {exc}", cause=exc) from exc
@@ -394,6 +400,7 @@ class SessionObjects:
                         "session_id": self._session_id,
                         "path": path,
                         "upload_id": upload_id,
+                        "upload_token": upload_token,
                         "part_number": part_number,
                     },
                 )
@@ -405,6 +412,7 @@ class SessionObjects:
                         presigned_url,
                         content=chunk,
                         headers={"Content-Type": "application/octet-stream"},
+                        timeout=_UPLOAD_TIMEOUT,
                     )
                 except httpx.TransportError as exc:
                     raise TransportError(
@@ -442,6 +450,7 @@ class SessionObjects:
                         "session_id": self._session_id,
                         "path": path,
                         "upload_id": upload_id,
+                        "upload_token": upload_token,
                     },
                 )
             raise

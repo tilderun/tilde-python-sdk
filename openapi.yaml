@@ -1837,6 +1837,12 @@ paths:
           description: Multipart upload ID to abort
           schema:
             type: string
+        - name: upload_token
+          in: query
+          required: true
+          description: Upload token returned from initiateMultipartUpload
+          schema:
+            type: string
       responses:
         '204':
           description: Multipart upload aborted
@@ -1865,6 +1871,12 @@ paths:
           in: query
           required: true
           description: Multipart upload ID
+          schema:
+            type: string
+        - name: upload_token
+          in: query
+          required: true
+          description: Upload token returned from initiateMultipartUpload
           schema:
             type: string
         - name: part_number
@@ -4366,6 +4378,12 @@ components:
           type: string
         display_name:
           type: string
+        status:
+          type: string
+          enum: [active, suspended]
+        notes:
+          type: string
+          nullable: true
         created_at:
           type: string
           format: date-time
