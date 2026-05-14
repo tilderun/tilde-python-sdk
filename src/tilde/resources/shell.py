@@ -198,7 +198,7 @@ class Shell:
             status = self._sandbox.status()
             if status.state == "running":
                 return
-            if status.state in ("failed", "cancelled", "committed", "error"):
+            if status.is_terminal:
                 raise SandboxError(
                     f"Sandbox {self._sandbox.id} entered terminal state "
                     f"'{status.state}' before becoming ready"

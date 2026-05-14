@@ -49,8 +49,28 @@ class LogStream:
         return self._response.iter_lines()
 
 
+_ACTIVE_STATES: frozenset[str] = frozenset({"starting", "running"})
+_TERMINAL_STATES: frozenset[str] = frozenset({"done", "errored", "failed", "cancelled"})
+
+
 class SandboxStatus:
-    """Status snapshot of a sandbox with streaming log access."""
+    """Status snapshot of a sandbox with streaming log access.
+
+    The full outcome is described by the ``(state, status_reason)`` pair --
+    read both. ``state`` is one of ``starting``, ``running``, ``done``,
+    ``errored``, ``failed``, ``cancelled``. The terminal states are
+    ``done``, ``errored``, ``failed``, ``cancelled``; the others are
+    active. ``status_reason`` qualifies the state:
+
+    * ``starting`` -- ``created`` or ``initializing``
+    * ``running`` -- empty
+    * ``done`` -- ``committed``, ``no_changes``, or ``awaiting_approval``
+    * ``errored`` -- ``exit_non_zero``
+    * ``failed`` -- ``internal_error``, ``image_not_found``,
+      ``sandbox_lost``, ``timeout``, ``commit_failed``,
+      ``policy_violation``, or ``storage_not_ready``
+    * ``cancelled`` -- ``cancelled_by_user`` or ``user_initiated_cancel``
+    """
 
     def __init__(
         self,
@@ -69,6 +89,8 @@ class SandboxStatus:
 
     def __repr__(self) -> str:
         parts = [f"state={self.state!r}"]
+        if self.status_reason:
+            parts.append(f"status_reason={self.status_reason!r}")
         if self.exit_code is not None:
             parts.append(f"exit_code={self.exit_code}")
         if self.commit_id:
@@ -78,6 +100,31 @@ class SandboxStatus:
         if self.error_message:
             parts.append(f"error_message={self.error_message!r}")
         return f"SandboxStatus({', '.join(parts)})"
+
+    @property
+    def is_terminal(self) -> bool:
+        """``True`` once the sandbox has reached a terminal state."""
+        return self.state in _TERMINAL_STATES
+
+    @property
+    def is_active(self) -> bool:
+        """``True`` while the sandbox is still starting or running."""
+        return self.state in _ACTIVE_STATES
+
+    @property
+    def is_committed(self) -> bool:
+        """``True`` if the sandbox finished and its changes were committed."""
+        return self.state == "done" and self.status_reason == "committed"
+
+    @property
+    def is_awaiting_approval(self) -> bool:
+        """``True`` if the sandbox finished but its changes need approval."""
+        return self.state == "done" and self.status_reason == "awaiting_approval"
+
+    @property
+    def has_no_changes(self) -> bool:
+        """``True`` if the sandbox finished with nothing to commit."""
+        return self.state == "done" and self.status_reason == "no_changes"
 
     def stdout(self) -> LogStream:
         """Stream merged sandbox stdout and stderr."""

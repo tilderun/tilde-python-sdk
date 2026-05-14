@@ -262,8 +262,16 @@ class Repository:
         mountpoint: str | None = None,
         path_prefix: str | None = None,
     ) -> RunResult:
-        """Run a single command in a sandbox and return the result."""
+        """Run a single command in a sandbox and return the result.
+
+        If the sandbox finishes in the ``awaiting_approval`` state (policy
+        requires a human to approve the staged changes before they land), a
+        :class:`UserWarning` is emitted carrying the web URL where the run
+        can be reviewed. The ``RunResult`` is still returned so callers can
+        inspect stdout / exit code.
+        """
         import time
+        import warnings
 
         from tilde.exceptions import CommandError, SandboxError
         from tilde.resources.sandboxes import _create_sandbox
@@ -288,7 +296,7 @@ class Repository:
         status = None
         while time.monotonic() < deadline:
             status = sandbox.status()
-            if status.state in ("committed", "failed", "cancelled", "error", "awaiting_approval"):
+            if status.is_terminal:
                 break
             time.sleep(1.0)
         else:
@@ -317,6 +325,12 @@ class Repository:
                 f"Command {cmd_str!r} exited with code {exit_code}",
                 result=result,
                 command=cmd_str,
+            )
+
+        if status is not None and status.is_awaiting_approval:
+            warnings.warn(
+                f"Approval required - review and approve at: {status.web_url}",
+                stacklevel=2,
             )
 
         return result

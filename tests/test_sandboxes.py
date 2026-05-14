@@ -68,7 +68,7 @@ class TestListSandboxes:
                 json={
                     "results": [
                         {"id": "sbx-1", "image": "python-310", "status": "running"},
-                        {"id": "sbx-2", "image": "node-18", "status": "committed"},
+                        {"id": "sbx-2", "image": "node-18", "status": "done"},
                     ],
                     "pagination": {"has_more": False, "next_offset": None, "max_per_page": 100},
                 },
@@ -142,8 +142,8 @@ class TestSandboxStatus:
             return_value=httpx.Response(
                 200,
                 json={
-                    "status": "committed",
-                    "status_reason": "",
+                    "status": "done",
+                    "status_reason": "committed",
                     "exit_code": 0,
                     "commit_id": "commit-abc",
                     "web_url": "",
@@ -152,9 +152,89 @@ class TestSandboxStatus:
         )
         sandbox = repo.sandboxes.create(image="python-310")
         status = sandbox.status()
-        assert status.state == "committed"
+        assert status.state == "done"
+        assert status.status_reason == "committed"
+        assert status.is_terminal is True
+        assert status.is_active is False
+        assert status.is_committed is True
+        assert status.is_awaiting_approval is False
+        assert status.has_no_changes is False
         assert status.exit_code == 0
         assert status.commit_id == "commit-abc"
+
+    def test_status_awaiting_approval(self, mock_api, repo):
+        mock_api.post(BASE_PATH).mock(
+            return_value=httpx.Response(201, json={"sandbox_id": "sbx-appr"})
+        )
+        mock_api.get(f"{BASE_PATH}/sbx-appr/status").mock(
+            return_value=httpx.Response(
+                200,
+                json={
+                    "status": "done",
+                    "status_reason": "awaiting_approval",
+                    "exit_code": 0,
+                    "commit_id": "",
+                    "web_url": "https://tilde.example/approve/123",
+                },
+            )
+        )
+        sandbox = repo.sandboxes.create(image="python-310")
+        status = sandbox.status()
+        assert status.state == "done"
+        assert status.status_reason == "awaiting_approval"
+        assert status.is_awaiting_approval is True
+        assert status.is_committed is False
+        assert status.is_terminal is True
+        assert status.web_url == "https://tilde.example/approve/123"
+
+    def test_status_no_changes(self, mock_api, repo):
+        mock_api.post(BASE_PATH).mock(
+            return_value=httpx.Response(201, json={"sandbox_id": "sbx-noop"})
+        )
+        mock_api.get(f"{BASE_PATH}/sbx-noop/status").mock(
+            return_value=httpx.Response(
+                200,
+                json={
+                    "status": "done",
+                    "status_reason": "no_changes",
+                    "exit_code": 0,
+                    "commit_id": "",
+                    "web_url": "",
+                },
+            )
+        )
+        sandbox = repo.sandboxes.create(image="python-310")
+        status = sandbox.status()
+        assert status.state == "done"
+        assert status.status_reason == "no_changes"
+        assert status.has_no_changes is True
+        assert status.is_committed is False
+        assert status.is_terminal is True
+
+    def test_status_errored(self, mock_api, repo):
+        mock_api.post(BASE_PATH).mock(
+            return_value=httpx.Response(201, json={"sandbox_id": "sbx-err"})
+        )
+        mock_api.get(f"{BASE_PATH}/sbx-err/status").mock(
+            return_value=httpx.Response(
+                200,
+                json={
+                    "status": "errored",
+                    "status_reason": "exit_non_zero",
+                    "exit_code": 1,
+                    "commit_id": "",
+                    "web_url": "",
+                    "error_message": "command exited with code 1",
+                },
+            )
+        )
+        sandbox = repo.sandboxes.create(image="python-310")
+        status = sandbox.status()
+        assert status.state == "errored"
+        assert status.status_reason == "exit_non_zero"
+        assert status.is_terminal is True
+        assert status.is_active is False
+        assert status.exit_code == 1
 
     def test_status_failed(self, mock_api, repo):
         mock_api.post(BASE_PATH).mock(
@@ -176,7 +256,32 @@ class TestSandboxStatus:
         sandbox = repo.sandboxes.create(image="python-310")
         status = sandbox.status()
         assert status.state == "failed"
+        assert status.status_reason == "internal_error"
+        assert status.is_terminal is True
         assert status.error_message == "pod terminated unexpectedly"
+
+    def test_status_starting_is_active(self, mock_api, repo):
+        mock_api.post(BASE_PATH).mock(
+            return_value=httpx.Response(201, json={"sandbox_id": "sbx-init"})
+        )
+        mock_api.get(f"{BASE_PATH}/sbx-init/status").mock(
+            return_value=httpx.Response(
+                200,
+                json={
+                    "status": "starting",
+                    "status_reason": "initializing",
+                    "exit_code": None,
+                    "commit_id": "",
+                    "web_url": "",
+                },
+            )
+        )
+        sandbox = repo.sandboxes.create(image="python-310")
+        status = sandbox.status()
+        assert status.state == "starting"
+        assert status.status_reason == "initializing"
+        assert status.is_active is True
+        assert status.is_terminal is False
 
 
 class TestSandboxCancel:
