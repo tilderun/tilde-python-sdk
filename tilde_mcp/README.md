@@ -32,22 +32,56 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
 - "What connectors does my org have?"
 
 ### Import data from external sources
-- "Import images from Google Drive into training/bernard-v2/ using the gdrive connector"
+- "Import images from Google Drive into training/my-subject-v2/ using the gdrive connector"
 - "Check the status of import job abc123"
 
 ### Read and write files
 - "Update coordinator.py with this new version"
-- "Create a notes file at runs/bernard-v1/notes.txt"
+- "Create a notes file at runs/my-subject-v1/notes.txt"
 - "Delete the test folders we created earlier"
 
 ### Run commands in the repo
 - "How much space are the checkpoints taking up?"
 - "Find all .safetensors files in the repo"
-- "Count the images in training/bernard-v1/"
+- "Count the images in training/my-subject-v1/"
 
 ### Launch and monitor sandboxes
 - "Start a sandbox that runs the training pipeline"
 - "What's the status of sandbox xyz?"
+
+## Example: Import data and verify it landed
+
+The following shows a multi-step workflow — import training images from a Google Drive connector, poll until complete, inspect the result, and count the files:
+
+```
+Step 1: list_connectors
+  gdrive-images  id=0718ef79-...
+
+Step 2: import_from_connector → training/my-subject-v3/
+  job_id=fc93d0dc-...  status=running
+
+Step 3: polling...
+  running  objects=103
+  completed  objects=207
+  final: completed  error: none
+
+Step 4: list_objects (prefix=training/my-subject-v3/)
+  training/my-subject-v3/IMG_0001.jpg  (706450 bytes)
+  training/my-subject-v3/IMG_0001.txt  (128 bytes)
+  training/my-subject-v3/IMG_0002.jpg  (2147924 bytes)
+  training/my-subject-v3/IMG_0002.txt  (112 bytes)
+  ...
+
+Step 5: exec_sandbox — find /sandbox/training/my-subject-v3 | wc -l
+  file count: 220  exit_code=0
+
+Step 6: list_objects (prefix=checkpoints/my-subject-v3/)
+  checkpoints/my-subject-v3/model_step-0500.safetensors  (786432000 bytes)
+  checkpoints/my-subject-v3/model_step-1000.safetensors  (786432000 bytes)
+  checkpoints/my-subject-v3/train.log  (24312 bytes)
+```
+
+All from a single prompt to Claude: *"Import my Google Drive images into training/my-subject-v3/ and tell me how many files landed."*
 
 ## Tools
 
