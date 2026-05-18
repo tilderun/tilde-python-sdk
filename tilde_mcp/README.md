@@ -9,7 +9,7 @@ Install dependencies:
 pip install "mcp[cli]>=1.0" tilde-sdk
 ```
 
-Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
+Add to `.claude/settings.json` in your project:
 ```json
 {
   "mcpServers": {
